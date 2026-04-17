@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Guardia · Visitantes</title>
+
+  <!-- html5-qrcode (CDN) -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:#f6f8fc;
+      color:#0f172a;
+    }
+    header{
+      background:#fff;
+      border-bottom:1px solid #e5e7eb;
+      position:sticky; top:0; z-index:10;
+    }
+    .container{ max-width:1100px; margin:0 auto; padding:16px; }
+    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .spacer{ flex:1; }
+
+    .card{
+      background:#fff;
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 10px 24px rgba(0,0,0,.08);
+    }
+    .two{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .three{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    @media (max-width:980px){ .three{ grid-template-columns:1fr; } .two{ grid-template-columns:1fr; } }
+
+    label{ font-size:13px; color:#475569; display:block; margin:10px 0 6px; }
+
+    input, select{
+      width:100%;
+      max-width:100%;
+      display:block;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #cbd5f5;
+      font-size:15px;
+      background:#fff;
+    }
+
+    button{
+      background:#2563eb;
+      color:#fff;
+      border:none;
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    button.secondary{ background:#e5e7eb; color:#0f172a; }
+    button.ok{ background:#16a34a; }
+    button.danger{ background:#dc2626; }
+    button:disabled{ opacity:.6; cursor:not-allowed; }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(15,23,42,.10);
+      background:rgba(255,255,255,.7);
+      color:#475569;
+      font-size:12px;
+    }
+    .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+    .dot.warn{ background:#d97706; }
+    .dot.info{ background:#0284c7; }
+    .dot.ok{ background:#16a34a; }
+    .dot.bad{ background:#dc2626; }
+    .dot.brand{ background:#2563eb; }
+    .dot.muted{ background:#94a3b8; }
+
+    .colTitle{ font-weight:800; margin:0 0 10px; display:flex; justify-content:space-between; }
+    .muted{ color:#64748b; font-size:12px; }
+
+    .visitCard{
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      box-shadow:0 8px 16px rgba(2,6,23,.06);
+      margin-bottom:10px;
+    }
+    .visitCard b{ font-size:14px; }
+    .meta{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+
+    .toast-wrap{
+      position:fixed; right:14px; bottom:14px; z-index:9999;
+      display:flex; flex-direction:column; gap:10px; max-width:380px;
+    }
+    .toast{
+      border-radius:14px;
+      border:1px solid rgba(15,23,42,.10);
+      background:rgba(255,255,255,.96);
+      box-shadow:0 18px 35px rgba(2,6,23,.12);
+      padding:10px 12px;
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .toast b{ display:block; font-size:13px; margin-bottom:2px; }
+    .toast p{ margin:0; font-size:12px; color:#475569; }
+    .toast .badge{ width:10px; height:10px; border-radius:999px; margin-top:4px; flex:0 0 auto; }
+
+    #reader{
+      width:100%;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid rgba(15,23,42,.12);
+      background:#fff;
+    }
+    /* ===== Semáforo en la tarjeta (solo visual) ===== */
+.visitCard.rag-ok{
+  border-color: rgba(22,163,74,.55);
+  background: rgba(22,163,74,.08);
+}
+.visitCard.rag-warn{
+  border-color: rgba(217,119,6,.55);
+  background: rgba(217,119,6,.10);
+}
+.visitCard.rag-bad{
+  border-color: rgba(220,38,38,.55);
+  background: rgba(220,38,38,.10);
+}
+
+/* Opcional: barra lateral para que sea más llamativo */
+.visitCard.rag-ok{ box-shadow: inset 6px 0 0 rgba(22,163,74,.70), 0 8px 16px rgba(2,6,23,.06); }
+.visitCard.rag-warn{ box-shadow: inset 6px 0 0 rgba(217,119,6,.75), 0 8px 16px rgba(2,6,23,.06); }
+.visitCard.rag-bad{ box-shadow: inset 6px 0 0 rgba(220,38,38,.75), 0 8px 16px rgba(2,6,23,.06); }
+ 
+/* ===== Modal Incidencias ===== */
+.modal-backdrop{
+  position:fixed; inset:0;
+  background: rgba(0,0,0,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:99999;
+}
+.modal{
+  width:min(560px, 96vw);
+  background:#fff;
+  border:1px solid rgba(15,23,42,.12);
+  border-radius:14px;
+  box-shadow:0 18px 40px rgba(2,6,23,.18);
+  padding:16px;
+}
+.modal h3{ margin:0 0 6px; }
+.modal .muted{ margin:0 0 10px; }
+.modal textarea{
+  width:100%;
+  min-height:110px;
+  resize:vertical;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #cbd5f5;
+  font-size:14px;
+  background:#fff;
+}
+ 
+ </style>
+
+  <!-- ========= FIREBASE (CDN modular) ========= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      query,
+      where,
+      orderBy,
+      limit,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    // ✅ Tu config real
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0mn8aVRKPpF-yiNVTb2FKqyhHg3lQmpg",
+      authDomain: "visitantes-d671e.firebaseapp.com",
+      projectId: "visitantes-d671e",
+      storageBucket: "visitantes-d671e.appspot.com",
+      messagingSenderId: "697592280672",
+      appId: "1:697592280672:web:8824bdd0488cf10bd77505"
+    };
+
+    // App principal (sesión guardia/admin)
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // App secundaria para crear usuarios SIN tumbar la sesión del admin
+    const app2 = initializeApp(firebaseConfig, "Secondary");
+    const auth2 = getAuth(app2);
+
+    window.__FB__ = {
+      // apps
+      auth, auth2, db,
+
+      // auth
+      signInWithEmailAndPassword, onAuthStateChanged, signOut,
+      createUserWithEmailAndPassword,
+
+      // firestore
+      collection, doc, getDoc, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot
+    };
+
+    console.log("🔥 Firebase listo (Auth + Firestore)");
+  </script>
+</head>
+
+<body>
+<header>
+  <div class="container row">
+    <div class="pill"><span class="dot brand"></span><b style="color:#0f172a">Visitantes</b> · Guardia</div>
+    <div class="spacer"></div>
+    <div id="userPill" class="pill" style="display:none;"></div>
+    <button id="btnLogout" class="secondary" style="display:none;">Cerrar sesión</button>
+  </div>
+</header>
+
+<main class="container">
+  <div id="app"></div>
+</main>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const appEl = document.getElementById("app");
+  const toasts = document.getElementById("toasts");
+  const userPill = document.getElementById("userPill");
+  const btnLogout = document.getElementById("btnLogout");
+
+  const Status = { LLEGADO:"llegado", DENTRO:"dentro", FINALIZADO:"finalizado" };
+
+  // Semáforo de espera (LLEGADO -> DENTRO)
+  const WAIT_GREEN_MAX = 5;   // 0..5
+  const WAIT_YELLOW_MAX = 15; // 6..15
+  // 16+ => rojo
+
+  const VIEWS = { LOGIN:"login", DASH:"dash", SCAN:"scan", ALTA:"alta" };
+  let view = VIEWS.LOGIN;
+
+  let currentUser = null;     // Firebase Auth user
+  let userProfile = null;     // Firestore users/{uid}
+  let userRole = null;        // "admin" | "guardia"
+
+  let unsubscribeHoy = null;
+  let visitasHoy = [];
+
+  let scanner = null; // Html5QrcodeScanner
+
+  // helpers
+
+  function askIncidenciaSalida({ nombre, id }){
+  return new Promise((resolve) => {
+    const back = document.createElement("div");
+    back.className = "modal-backdrop";
+    back.innerHTML = `
+      <div class="modal">
+        <h3>Registrar salida</h3>
+        <p class="muted">Visitante: <b>${esc(nombre || "-")}</b> · ID: <b>${esc(id || "")}</b></p>
+
+        <label>Incidencias (opcional)</label>
+        <textarea id="incTxt" placeholder="Ej. No devolvió gafete a la primera, se detectó objeto no permitido, se negó a firmar, etc."></textarea>
+
+        <div style="height:12px"></div>
+        <div class="row" style="justify-content:flex-end;">
+          <button class="secondary" id="btnCancelInc">Cancelar</button>
+          <button class="danger" id="btnOkInc">Confirmar salida</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(back);
+
+    const close = () => { try{ back.remove(); }catch{} };
+
+    back.addEventListener("click", (e) => {
+      if(e.target === back){ close(); resolve(null); } // click afuera = cancelar
+    });
+
+    back.querySelector("#btnCancelInc").onclick = () => { close(); resolve(null); };
+    back.querySelector("#btnOkInc").onclick = () => {
+      const val = (back.querySelector("#incTxt").value || "").trim();
+      close();
+      resolve(val); // puede ser "" si no puso nada
+    };
+
+    // focus automático
+    setTimeout(() => back.querySelector("#incTxt")?.focus(), 0);
+  });
+}
+
+  function waitRag(esperaMin){
+  if(esperaMin == null) return null;
+
+  if(esperaMin <= WAIT_GREEN_MAX){
+    return { color: "ok", label: "VERDE", dot: "ok" };
+  }
+  if(esperaMin <= WAIT_YELLOW_MAX){
+    return { color: "warn", label: "AMARILLO", dot: "warn" };
+  }
+  return { color: "bad", label: "ROJO", dot: "bad" };
+}
+
+function waitChip(esperaMin){
+  const r = waitRag(esperaMin);
+  if(!r) return "";
+
+  const bg =
+    r.dot === "ok" ? "rgba(22,163,74,.12)" :
+    r.dot === "warn" ? "rgba(217,119,6,.14)" :
+    "rgba(220,38,38,.14)";
+
+  const br =
+    r.dot === "ok" ? "rgba(22,163,74,.45)" :
+    r.dot === "warn" ? "rgba(217,119,6,.45)" :
+    "rgba(220,38,38,.45)";
+
+  return `<span class="pill" title="Semáforo de espera (Llegado→Dentro)"
+            style="background:${bg}; border-color:${br};">
+            <span class="dot ${r.dot}"></span>
+            Espera: <b style="color:#0f172a">${esperaMin} min</b> · ${r.label}
+          </span>`;
+}
+
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const esc = (s="") => String(s).replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[ch]));
+
+  function toast(title, msg, type="info", ttl=2600){
+    const badgeColor =
+      type==="ok" ? "#16a34a" :
+      type==="warn" ? "#d97706" :
+      type==="bad" ? "#dc2626" : "#0284c7";
+
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.innerHTML = `
+      <span class="badge" style="background:${badgeColor}"></span>
+      <div><b>${esc(title)}</b><p>${esc(msg)}</p></div>
+    `;
+    toasts.appendChild(el);
+    setTimeout(()=>el.remove(), ttl);
+  }
+
+  function goTo(next){
+    view = next;
+    if(view === VIEWS.LOGIN) return renderLogin();
+    if(view === VIEWS.DASH) return renderDashboard();
+    if(view === VIEWS.SCAN) return renderScanner();
+    if(view === VIEWS.ALTA) return renderAltaUsuario();
+  }
+
+  function dayBounds(d=new Date()){
+    const x = new Date(d);
+    x.setHours(0,0,0,0);
+    return { start: x.getTime(), end: x.getTime() + 24*60*60*1000 };
+  }
+  function mins(ms){ return Math.max(0, Math.round(ms / 60000)); }
+
+  function calcTimes(v){
+    const now = Date.now();
+    const llegada = v.llegadaTs ?? null;
+    const entrada = v.entradaTs ?? null;
+    const salida  = v.salidaTs  ?? null;
+
+    const esperaMin =
+      (entrada && llegada) ? mins(entrada - llegada) :
+      (v.status === Status.LLEGADO && llegada) ? mins(now - llegada) : null;
+
+    const dentroMin =
+      (salida && entrada) ? mins(salida - entrada) : null;
+
+    const totalMin =
+      (salida && llegada) ? mins(salida - llegada) : null;
+
+    return { esperaMin, dentroMin, totalMin };
+  }
+
+  function statusPill(v){
+    if(v.status === Status.LLEGADO) return `<span class="pill"><span class="dot warn"></span>LLEGÓ</span>`;
+    if(v.status === Status.DENTRO) return `<span class="pill"><span class="dot ok"></span>DENTRO</span>`;
+    return `<span class="pill"><span class="dot muted"></span>FINALIZADO</span>`;
+  }
+  function qrPill(v){
+    return v.qrActivo
+      ? `<span class="pill"><span class="dot ok"></span>QR Activo</span>`
+      : `<span class="pill"><span class="dot bad"></span>QR Inactivo</span>`;
+  }
+
+  // ---------- AUTH + ROLE ----------
+  async function loadUserProfile(uid){
+    const { db, doc, getDoc } = window.__FB__;
+    const snap = await getDoc(doc(db, "users", uid));
+    if(!snap.exists()) return null;
+    return snap.data();
+  }
+
+  function paintUser(){
+    if(!currentUser){
+      userPill.style.display = "none";
+      btnLogout.style.display = "none";
+      return;
+    }
+    userPill.style.display = "";
+    btnLogout.style.display = "";
+    const nombre = userProfile?.nombre || currentUser.email || "sesión";
+    const rol = (userRole || "").toUpperCase();
+    userPill.innerHTML = `<span class="dot ok"></span>${esc(nombre)} · ${esc(rol)}`;
+  }
+
+  btnLogout.onclick = async () => {
+    stopScanner();
+    stopListenerHoy();
+    try{
+      const { auth, signOut } = window.__FB__;
+      await signOut(auth);
+    }catch{}
+  };
+
+  // ---------- VIEWS ----------
+  function renderLogin(){
+    paintUser();
+    appEl.innerHTML = `
+      <div class="card" style="max-width:420px;margin:30px auto;">
+        <h2 style="margin:0 0 6px;">Iniciar sesión</h2>
+        <div class="muted">Guardia / Admin (Email y contraseña)</div>
+
+        <label>Correo</label>
+        <input id="email" type="email" autocomplete="off" />
+
+        <label>Contraseña</label>
+        <input id="pass" type="password" />
+
+        <div style="height:12px"></div>
+        <div class="row">
+          <button id="btnLogin">Entrar</button>
+        </div>
+
+        <div style="height:12px"></div>
+        <div class="muted">
+          Cámara: usar <b>https</b> o <b>localhost</b>.
+        </div>
+      </div>
+    `;
+
+    $("#btnLogin").onclick = async () => {
+      const email = ($("#email").value || "").trim();
+      const pass  = ($("#pass").value  || "").trim();
+      if(!email || !pass) return toast("Faltan datos","Correo y contraseña.", "warn");
+
+      try{
+        const { auth, signInWithEmailAndPassword } = window.__FB__;
+        await signInWithEmailAndPassword(auth, email, pass);
+      }catch(e){
+        console.error(e);
+        toast("Login", e?.message || "No se pudo iniciar sesión.", "bad", 4200);
+      }
+    };
+  }
+
+  function renderDashboard(){
+    const llegados = visitasHoy
+  .filter(v => v.tipo === "visitante" && v.status === Status.LLEGADO && v.qrActivo)
+  .sort((a,b) => {
+    const wa = calcTimes(a).esperaMin ?? 0;
+    const wb = calcTimes(b).esperaMin ?? 0;
+    return wb - wa; // mayor espera primero
+  });
+
+    const dentro   = visitasHoy.filter(v => v.tipo === "visitante" && v.status === Status.DENTRO && v.qrActivo);
+    const fin      = visitasHoy.filter(v => v.tipo === "visitante" && (v.status === Status.FINALIZADO || !v.qrActivo));
+
+    const adminBtn = (userRole === "admin")
+      ? `<button class="secondary" id="btnAlta">➕ Alta de usuario</button>`
+      : ``;
+
+
+const rojos = llegados.filter(v => {
+  const w = calcTimes(v).esperaMin;
+  return w != null && w > WAIT_YELLOW_MAX;
+}).length;
+
+      appEl.innerHTML = `
+      
+      <div class="row" style="margin-bottom:12px;">
+        <button class="secondary" id="btnScan">Escanear QR</button>
+        <button class="secondary" id="btnManual">Acción manual por ID</button>
+        ${adminBtn}
+        <div class="spacer"></div>
+        <span class="pill"><span class="dot warn"></span>Llegaron: <b style="color:#0f172a">${llegados.length}</b></span>
+        <span class="pill"><span class="dot ok"></span>Dentro: <b style="color:#0f172a">${dentro.length}</b></span>
+        <span class="pill"><span class="dot muted"></span>Finalizados: <b style="color:#0f172a">${fin.length}</b></span>
+        <span class="pill"><span class="dot bad"></span>Rojos: <b style="color:#0f172a">${rojos}</b></span>
+      </div>
+
+      <div class="three">
+        <div class="card">
+          <div class="colTitle">Llegaron <span class="pill"><span class="dot warn"></span>${llegados.length}</span></div>
+          ${llegados.length ? llegados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+        </div>
+
+        <div class="card">
+          <div class="colTitle">Dentro <span class="pill"><span class="dot ok"></span>${dentro.length}</span></div>
+          ${dentro.length ? dentro.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+        </div>
+
+        <div class="card">
+          <div class="colTitle">Finalizados / QR Inactivo <span class="pill"><span class="dot muted"></span>${fin.length}</span></div>
+          ${fin.length ? fin.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+        </div>
+      </div>
+    `;
+
+    $("#btnScan").onclick = () => goTo(VIEWS.SCAN);
+    $("#btnManual").onclick = () => manualById();
+
+    if(userRole === "admin"){
+      $("#btnAlta").onclick = () => goTo(VIEWS.ALTA);
+    }
+  }
+
+  function renderVisitCard(v){
+    const t = calcTimes(v);
+    const chips = [];
+
+    if(v.status === Status.LLEGADO && t.esperaMin !== null){
+    chips.push(waitChip(t.esperaMin));
+    }
+    if(t.dentroMin !== null) chips.push(`<span class="pill"><span class="dot brand"></span>Dentro: <b style="color:#0f172a">${t.dentroMin} min</b></span>`);
+    if(t.totalMin !== null)  chips.push(`<span class="pill"><span class="dot muted"></span>Total: <b style="color:#0f172a">${t.totalMin} min</b></span>`);
+    if(v.gafeteNo) chips.push(`<span class="pill"><span class="dot info"></span>Gafete: <b style="color:#0f172a">${esc(v.gafeteNo)}</b></span>`);
+
+    const acciones = [];
+    if(v.status === Status.LLEGADO && v.qrActivo){
+      acciones.push(`<button class="ok" data-act="darAcceso" data-id="${esc(v.id)}">Dar acceso</button>`);
+    }
+    if(v.status === Status.DENTRO && v.qrActivo){
+      acciones.push(`<button class="danger" data-act="darSalida" data-id="${esc(v.id)}">Dar salida</button>`);
+    }
+
+if(v.incidenciasSalida){
+  chips.push(`<span class="pill"><span class="dot warn"></span>Incidencia</span>`);
+}
+
+    let ragClass = "";
+if(v.status === Status.LLEGADO){
+  const w = calcTimes(v).esperaMin;
+  const r = waitRag(w); // tu función actual
+  if(r?.dot === "ok") ragClass = "rag-ok";
+  else if(r?.dot === "warn") ragClass = "rag-warn";
+  else if(r?.dot === "bad") ragClass = "rag-bad";
+}
+    return `
+      <div class="visitCard ${ragClass}">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <b>${esc(v.nombreVisitante || "-")}</b>
+            <div class="muted">${esc(v.empresa || "")} · Visita a: <b>${esc(v.personaVisita || "-")}</b></div>
+            <div class="muted">ID: <b>${esc(v.id)}</b></div>
+            <div class="meta">
+              ${statusPill(v)}
+              ${qrPill(v)}
+              ${chips.join("")}
+            </div>
+          </div>
+          <div class="row" style="justify-content:flex-end;">
+            ${acciones.join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAltaUsuario(){
+    if(userRole !== "admin"){
+      toast("Acceso denegado","Solo ADMIN puede dar de alta usuarios.", "bad", 3200);
+      return goTo(VIEWS.DASH);
+    }
+
+    appEl.innerHTML = `
+      <div class="card" style="max-width:520px;margin:20px auto;">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <h2 style="margin:0 0 6px;">Alta de Usuario</h2>
+            <div class="muted">Solo administradores</div>
+          </div>
+          <button class="secondary" id="btnBackAlta">Volver</button>
+        </div>
+
+        <label>Nombre completo</label>
+        <input id="uNombre" />
+
+        <label>Correo</label>
+        <input id="uEmail" type="email" />
+
+        <label>Contraseña</label>
+        <input id="uPass" type="password" />
+
+        <label>Rol</label>
+        <select id="uRol">
+          <option value="guardia">Guardia</option>
+          <option value="admin">Administrador</option>
+        </select>
+
+        <div style="height:12px"></div>
+
+        <div class="row">
+          <button id="btnCrearUser">Crear usuario</button>
+          <button class="secondary" id="btnLimpiarAlta">Limpiar</button>
+        </div>
+
+        <div id="uMsg" class="muted" style="margin-top:12px;"></div>
+
+        <div style="height:12px"></div>
+        <div class="muted">
+          Nota: esta alta crea el usuario en Auth y su doc en <b>/users</b> sin cerrar tu sesión.
+        </div>
+      </div>
+    `;
+
+    $("#btnBackAlta").onclick = () => goTo(VIEWS.DASH);
+    $("#btnLimpiarAlta").onclick = () => {
+      $("#uNombre").value = "";
+      $("#uEmail").value = "";
+      $("#uPass").value = "";
+      $("#uRol").value = "guardia";
+      $("#uMsg").textContent = "";
+      $("#uNombre").focus();
+    };
+    $("#btnCrearUser").onclick = crearUsuarioDesdeAdmin;
+  }
+
+  async function crearUsuarioDesdeAdmin(){
+    const nombre = ($("#uNombre").value || "").trim();
+    const email  = ($("#uEmail").value || "").trim();
+    const pass   = ($("#uPass").value || "").trim();
+    const rol    = ($("#uRol").value || "").trim();
+    const msg    = $("#uMsg");
+
+    msg.textContent = "";
+
+    if(!nombre || !email || !pass){
+      msg.textContent = "Completa todos los campos.";
+      return;
+    }
+
+    try{
+      const { auth2, createUserWithEmailAndPassword, signOut, db, doc, setDoc } = window.__FB__;
+
+      // ✅ crea usuario con auth secundario para no cambiar la sesión del admin
+      const cred = await createUserWithEmailAndPassword(auth2, email, pass);
+      const uid = cred.user.uid;
+
+      await setDoc(doc(db, "users", uid), {
+        uid,
+        nombre,
+        email,
+        rol,
+        activo: true,
+        createdTs: Date.now()
+      });
+
+      // cierra sesión secundaria (no afecta la principal)
+      try{ await signOut(auth2); }catch{}
+
+      msg.textContent = "✅ Usuario creado y rol asignado.";
+      toast("Alta usuario","Usuario creado correctamente.", "ok", 2200);
+
+      $("#uNombre").value = "";
+      $("#uEmail").value = "";
+      $("#uPass").value = "";
+      $("#uRol").value = "guardia";
+      $("#uNombre").focus();
+
+    }catch(e){
+      console.error(e);
+      msg.textContent = e?.message || "Error al crear usuario.";
+      toast("Error", msg.textContent, "bad", 4200);
+    }
+  }
+
+  function renderScanner(){
+    appEl.innerHTML = `
+      <div class="card" style="max-width:900px;margin:0 auto;">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <h2 style="margin:0 0 6px;">Escanear QR</h2>
+            <div class="muted">Apunta la cámara al QR del visitante.</div>
+          </div>
+          <button class="secondary" id="btnBackScan">Volver</button>
+        </div>
+
+        <div style="height:12px"></div>
+        <div id="reader"></div>
+
+        <div style="height:12px"></div>
+        <div class="muted">Si la cámara no abre: usar <b>https</b> o <b>localhost</b>.</div>
+      </div>
+    `;
+
+    $("#btnBackScan").onclick = () => { stopScanner(); goTo(VIEWS.DASH); };
+
+    if(!window.Html5QrcodeScanner){
+      toast("Escáner","No cargó html5-qrcode. Revisa el script CDN.", "bad", 4200);
+      return goTo(VIEWS.DASH);
+    }
+
+    stopScanner();
+
+    // Config típico recomendado por la librería (fps + qrbox + cámara trasera) [3](https://github.com/IDGS-903-21000468/Examen2doAWP)
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      videoConstraints: { facingMode: "environment" }
+    };
+
+    scanner = new Html5QrcodeScanner("reader", config, false);
+    scanner.render(async (decodedText) => {
+      try{ await scanner.clear(); }catch{}
+      scanner = null;
+      await handleScan(String(decodedText || "").trim());
+    }, () => {});
+  }
+
+  async function stopScanner(){
+    if(scanner){
+      try{ await scanner.clear(); }catch{}
+      scanner = null;
+    }
+  }
+
+  async function manualById(){
+    const id = prompt("Ingresa el ID (del QR), ejemplo: VIS-1713...");
+    if(!id) return;
+    await handleScan(String(id).trim());
+  }
+
+  async function handleScan(id){
+    if(!id){
+      toast("QR","Código vacío.", "warn");
+      return goTo(VIEWS.DASH);
+    }
+
+    const { db, doc, getDoc } = window.__FB__;
+    let snap;
+
+    try{
+      snap = await getDoc(doc(db, "visitas", id));
+    }catch(e){
+      console.error(e);
+      toast("Firestore","No se pudo consultar (conexión/rules).", "bad", 4200);
+      return goTo(VIEWS.DASH);
+    }
+
+    if(!snap.exists()){
+      toast("QR inválido","No existe ese ID en la base.", "bad", 3200);
+      return goTo(VIEWS.DASH);
+    }
+
+    const v = { id: snap.id, ...snap.data() };
+
+    if(v.tipo !== "visitante"){
+      toast("No permitido","Este QR no es de visitantes.", "warn", 3200);
+      return goTo(VIEWS.DASH);
+    }
+
+    if(!v.qrActivo){
+      toast("QR inactivo","Ya fue desactivado al finalizar.", "warn", 3200);
+      return goTo(VIEWS.DASH);
+    }
+
+    if(v.status === Status.LLEGADO){
+      const gafete = prompt("No. de gafete:");
+      if(!gafete) return goTo(VIEWS.DASH);
+      await darAcceso(v.id, String(gafete).trim());
+      return;
+    }
+
+    if(v.status === Status.DENTRO){
+  const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id: v.id });
+  if(inc === null) return goTo(VIEWS.DASH); // canceló
+
+  await darSalida(v.id, inc);
+  return;
+}
+
+    toast("Sin acción","Este registro ya está finalizado.", "info", 2400);
+    return goTo(VIEWS.DASH);
+  }
+
+  async function darAcceso(id, gafeteNo){
+    const { db, doc, updateDoc } = window.__FB__;
+    try{
+      await updateDoc(doc(db, "visitas", id), {
+        status: Status.DENTRO,
+        entradaTs: Date.now(),
+        gafeteNo: gafeteNo,
+        updatedTs: Date.now()
+      });
+
+      toast("Acceso otorgado","Visitante dentro.", "ok", 2200);
+      goTo(VIEWS.DASH);
+    }catch(e){
+      console.error(e);
+      toast("Error","No se pudo registrar entrada.", "bad", 4200);
+      goTo(VIEWS.DASH);
+    }
+  }
+
+ async function darSalida(id, incidenciasTexto){
+  const { db, doc, updateDoc } = window.__FB__;
+  try{
+    await updateDoc(doc(db, "visitas", id), {
+      status: Status.FINALIZADO,
+      salidaTs: Date.now(),
+      qrActivo: false,
+      gafeteNo: null,
+      updatedTs: Date.now(),
+
+      // ✅ NUEVO
+      incidenciasSalida: (incidenciasTexto || "").trim(),
+      salidaPor: userProfile?.nombre || currentUser?.email || "",
+      salidaPorUid: currentUser?.uid || ""
+    });
+
+    toast(
+      "Salida registrada",
+      (incidenciasTexto && incidenciasTexto.trim())
+        ? "Finalizado con incidencias."
+        : "Finalizado (sin incidencias).",
+      "ok",
+      2400
+    );
+    goTo(VIEWS.DASH);
+  }catch(e){
+    console.error(e);
+    toast("Error","No se pudo registrar salida.", "bad", 4200);
+    goTo(VIEWS.DASH);
+  }
+}
+
+  // Click actions en tarjetas
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-act]");
+    if(!btn) return;
+
+    const act = btn.dataset.act;
+    const id  = btn.dataset.id;
+
+    if(act === "darAcceso"){
+      const gafete = prompt("No. de gafete:");
+      if(!gafete) return;
+      await darAcceso(id, String(gafete).trim());
+    }
+
+   if(act === "darSalida"){
+  // buscamos info para mostrar en el modal
+  const v = visitasHoy.find(x => x.id === id) || {};
+  const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id: id });
+  if(inc === null) return; // canceló
+  await darSalida(id, inc);
+}
+
+  });
+
+  // ---------- REALTIME HOY ----------
+  function startListenerHoy(){
+    stopListenerHoy();
+
+    const { db, collection, query, where, orderBy, limit, onSnapshot } = window.__FB__;
+    const { start, end } = dayBounds(new Date());
+
+    // Consulta con rango y orden (patrón estándar de orderBy/limit) 78888543/minimal-pwa-requirements-what-is-the-least-needed-to-turn-a-web-page-into-an-i)
+    const q = query(
+      collection(db, "visitas"),
+      where("createdTs", ">=", start),
+      where("createdTs", "<", end),
+      orderBy("createdTs", "desc"),
+      limit(300)
+    );
+
+    unsubscribeHoy = onSnapshot(q, (snap) => {
+      const arr = [];
+      snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+      visitasHoy = arr.filter(x => x.tipo === "visitante");
+      if(view === VIEWS.DASH) renderDashboard();
+      else if(view === VIEWS.SCAN) {} // no re-render mientras escaneas
+      else if(view === VIEWS.ALTA) {} // no re-render mientras das de alta
+      else renderDashboard();
+    }, (err) => {
+      console.error(err);
+      toast("Realtime","No se pudo escuchar cambios (rules/conexión).", "bad", 4200);
+      renderDashboard();
+    });
+  }
+
+  function stopListenerHoy(){
+    if(unsubscribeHoy){
+      try{ unsubscribeHoy(); }catch{}
+      unsubscribeHoy = null;
+    }
+  }
+
+  // ---------- INIT: Auth observer ----------
+  const waitFB = setInterval(() => {
+    if(window.__FB__?.onAuthStateChanged){
+      clearInterval(waitFB);
+
+      const { auth, onAuthStateChanged, signOut } = window.__FB__;
+
+      // Observador recomendado por Firebase para estado de sesión [2](https://teams.microsoft.com/l/meeting/details?eventId=AAMkADIyNDIyYzUxLWJhMjQtNDlkOC1hNjM1LTFkN2FjMGI5YjQyMgBGAAAAAABAnySmJuAESZYA5dIFFVh6BwBV99l9WrgXQaFnnYXfL3mnAAAAAAENAABV99l9WrgXQaFnnYXfL3mnAAQqmfTHAAA%3d)
+      onAuthStateChanged(auth, async (user) => {
+        currentUser = user || null;
+
+        if(!currentUser){
+          userProfile = null;
+          userRole = null;
+          stopScanner();
+          stopListenerHoy();
+          paintUser();
+          return goTo(VIEWS.LOGIN);
+        }
+
+        try{
+          userProfile = await loadUserProfile(currentUser.uid);
+
+          if(!userProfile){
+            toast("Acceso bloqueado","Tu cuenta no tiene rol asignado en /users.", "bad", 5200);
+            await signOut(auth);
+            return;
+          }
+
+          if(userProfile.activo === false){
+            toast("Acceso bloqueado","Tu cuenta está desactivada.", "bad", 5200);
+            await signOut(auth);
+            return;
+          }
+
+          userRole = String(userProfile.rol || "").toLowerCase();
+          if(userRole !== "admin" && userRole !== "guardia"){
+            toast("Acceso bloqueado","Rol inválido en /users.", "bad", 5200);
+            await signOut(auth);
+            return;
+          }
+
+          paintUser();
+          toast("Sesión activa", "Bienvenido(a).", "ok", 1600);
+
+          startListenerHoy();
+          return goTo(VIEWS.DASH);
+
+        }catch(e){
+          console.error(e);
+          toast("Error", "No se pudo validar tu perfil en /users.", "bad", 5200);
+          await signOut(auth);
+        }
+      });
+    }
+  }, 50);
+
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .then(() => console.log("✅ Service Worker registrado"))
+      .catch(err => console.error("❌ SW error", err));
+  });
+}
+</script>
+</body>
+</html>

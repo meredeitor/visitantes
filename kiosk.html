@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Registro de Visitantes</title>
+   
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#2563eb">
+
+  <!-- QR LIB -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:#f6f8fc;
+      color:#0f172a;
+    }
+
+    .container{
+      max-width:420px;
+      margin:0 auto;
+      padding:16px;
+    }
+
+    h1{
+      text-align:center;
+      margin-bottom:6px;
+    }
+
+    .muted{
+      color:#64748b;
+      font-size:13px;
+    }
+
+    .card{
+      background:#fff;
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 10px 24px rgba(0,0,0,.08);
+    }
+
+    label{
+      display:block;
+      font-size:13px;
+      color:#475569;
+      margin:10px 0 4px;
+    }
+
+    input, select{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #cbd5f5;
+      font-size:15px;
+      background:#fff;
+    }
+
+    button{
+      margin-top:14px;
+      width:100%;
+      background:#2563eb;
+      color:#fff;
+      border:none;
+      padding:12px;
+      border-radius:12px;
+      font-size:15px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    /* ===== FICHA ESTILO GUARDIA ===== */
+    .visitCard{
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:14px;
+      padding:14px;
+      background:#fff;
+      box-shadow:0 8px 16px rgba(2,6,23,.06);
+      margin-top:16px;
+    }
+
+    .visitCard b{ font-size:15px; }
+
+    .meta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(15,23,42,.10);
+      background:rgba(255,255,255,.7);
+      font-size:12px;
+    }
+
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+    }
+    .dot.warn{ background:#d97706; }
+    .dot.ok{ background:#16a34a; }
+    .dot.info{ background:#0284c7; }
+
+    /* ===== QR ===== */
+    .qr-wrapper{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin:18px 0;
+    }
+
+    /* ===== CONTADOR ===== */
+    .counter{
+      margin-top:12px;
+      text-align:center;
+      font-size:15px;
+      font-weight:600;
+    }
+
+    .counter span{
+      font-size:28px;
+      display:block;
+      margin-top:4px;
+      color:#2563eb;
+    }
+  </style>
+
+  <!-- ===== FIREBASE ===== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0mn8aVRKPpF-yiNVTb2FKqyhHg3lQmpg",
+      authDomain: "visitantes-d671e.firebaseapp.com",
+      projectId: "visitantes-d671e",
+      storageBucket: "visitantes-d671e.appspot.com",
+      messagingSenderId: "697592280672",
+      appId: "1:697592280672:web:8824bdd0488cf10bd77505"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.DB = { db, doc, setDoc, serverTimestamp };
+  </script>
+</head>
+
+<body>
+<div class="container">
+
+  <h1>Registro de Visitantes</h1>
+  <p class="muted" style="text-align:center">
+    Ingresa tus datos y espera validación de guardia
+  </p>
+
+  <!-- ===== FORMULARIO ===== -->
+  <div class="card" id="formCard">
+
+    <label>Nombre completo</label>
+    <input id="nombre">
+
+    <label>Empresa</label>
+    <input id="empresa">
+
+    <label>Motivo de la visita</label>
+    <select id="motivo">
+      <option value="">Seleccione…</option>
+      <option>Entrega</option>
+      <option>Visita</option>
+      <option>Entrevista</option>
+      <option>Junta</option>
+      <option>Servicio</option>
+      <option>Pago</option>
+      <option>Exámen médico</option>
+      <option>Otro</option>
+    </select>
+
+    <label>Persona a quien visita</label>
+    <select id="persona">
+      <option value="">Seleccione…</option>
+      <option>Jaqueline Gómez</option>
+      <option>Julia Saralegui</option>
+      <option>Mayela Reynaga</option>
+      <option>Jorge Olvera</option>
+      <option>Yolanda Hurtado</option>
+      <option>Paola Palomares</option>
+    </select>
+
+    <button onclick="registrar()">Registrar</button>
+  </div>
+
+  <div id="resultado"></div>
+</div>
+
+<script>
+let startTime = null;
+let counterTimer = null;
+
+function registrar(){
+  const nombre = document.getElementById("nombre").value.trim();
+  const empresa = document.getElementById("empresa").value.trim();
+  const motivo = document.getElementById("motivo").value;
+  const persona = document.getElementById("persona").value;
+
+  if(!nombre || !empresa || !motivo || !persona){
+    return alert("Completa todos los campos");
+  }
+
+  const id = "VIS-" + Date.now();
+
+  const data = {
+    id,
+    tipo: "visitante",
+    nombreVisitante: nombre,
+    empresa,
+    motivoVisita: motivo,
+    personaVisita: persona,
+    status: "llegado",
+    qrActivo: true,
+    llegadaTs: Date.now(),
+    createdTs: Date.now(),
+    serverTs: DB.serverTimestamp()
+  };
+
+  DB.setDoc(DB.doc(DB.db, "visitas", id), data)
+    .then(() => renderResultado(data));
+}
+
+function renderResultado(data){
+  document.getElementById("formCard").style.display = "none";
+  startTime = Date.now();
+
+  document.getElementById("resultado").innerHTML = `
+    <div class="visitCard">
+      <b>${data.nombreVisitante}</b>
+      <div class="muted">${data.empresa}</div>
+
+      <div class="muted">Motivo: <b>${data.motivoVisita}</b></div>
+      <div class="muted">Visita a: <b>${data.personaVisita}</b></div>
+
+      <div class="meta">
+        <span class="pill"><span class="dot warn"></span>LLEGADO</span>
+        <span class="pill"><span class="dot ok"></span>QR Activo</span>
+      </div>
+
+      <div class="qr-wrapper">
+        <div id="qr"></div>
+      </div>
+
+      <div class="counter">
+        Tiempo de espera
+        <span id="counter">00:00</span>
+      </div>
+
+      <p class="muted" style="text-align:center;margin-top:8px">
+        Por favor espere a que guardia valide su acceso
+      </p>
+    </div>
+  `;
+
+  new QRCode(document.getElementById("qr"), {
+    text: data.id,
+    width: 220,
+    height: 220
+  });
+
+  startCounter();
+}
+
+function startCounter(){
+  counterTimer = setInterval(() => {
+    const diff = Date.now() - startTime;
+    const min = Math.floor(diff / 60000);
+    const sec = Math.floor((diff % 60000) / 1000);
+    document.getElementById("counter").textContent =
+      String(min).padStart(2,"0") + ":" +
+      String(sec).padStart(2,"0");
+  }, 1000);
+}
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .then(() => console.log("✅ Service Worker registrado"))
+      .catch(err => console.error("❌ SW error", err));
+  });
+}
+</script>
+</body>
+</html>
