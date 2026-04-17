@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Registro de Visitantes</title>
-   
+
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#2563eb">
 
-  <!-- QR LIB -->
+  <!-- QRCode.js -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <style>
@@ -73,6 +73,18 @@
       cursor:pointer;
     }
 
+    button.secondary{
+      background:#e5e7eb;
+      color:#0f172a;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+
     /* ===== FICHA ESTILO GUARDIA ===== */
     .visitCard{
       border:1px solid rgba(15,23,42,.10);
@@ -112,12 +124,17 @@
     .dot.ok{ background:#16a34a; }
     .dot.info{ background:#0284c7; }
 
-    /* ===== QR ===== */
+    /* ===== QR centrado ===== */
     .qr-wrapper{
       display:flex;
       justify-content:center;
       align-items:center;
       margin:18px 0;
+    }
+    .qr-wrapper canvas,
+    .qr-wrapper img{
+      margin:0 auto;
+      display:block;
     }
 
     /* ===== CONTADOR ===== */
@@ -127,7 +144,6 @@
       font-size:15px;
       font-weight:600;
     }
-
     .counter span{
       font-size:28px;
       display:block;
@@ -136,15 +152,11 @@
     }
   </style>
 
-  <!-- ===== FIREBASE ===== -->
+  <!-- Firebase (solo Firestore, público) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA0mn8aVRKPpF-yiNVTb2FKqyhHg3lQmpg",
@@ -164,15 +176,13 @@
 
 <body>
 <div class="container">
-
   <h1>Registro de Visitantes</h1>
   <p class="muted" style="text-align:center">
     Ingresa tus datos y espera validación de guardia
   </p>
 
-  <!-- ===== FORMULARIO ===== -->
+  <!-- FORM -->
   <div class="card" id="formCard">
-
     <label>Nombre completo</label>
     <input id="nombre">
 
@@ -203,27 +213,32 @@
       <option>Paola Palomares</option>
     </select>
 
-    <button onclick="registrar()">Registrar</button>
+    <button id="btnRegistrar" onclick="registrar()">Registrar</button>
   </div>
 
   <div id="resultado"></div>
 </div>
 
 <script>
-let startTime = null;
-let counterTimer = null;
 
-function registrar(){
-  const nombre = document.getElementById("nombre").value.trim();
+
+// Timer visual (solo para mostrar espera en kiosk)
+async function registrar(){
+  const btn = document.getElementById("btnRegistrar");
+  if(btn) btn.disabled = true;
+
+  const nombre  = document.getElementById("nombre").value.trim();
   const empresa = document.getElementById("empresa").value.trim();
-  const motivo = document.getElementById("motivo").value;
+  const motivo  = document.getElementById("motivo").value;
   const persona = document.getElementById("persona").value;
 
   if(!nombre || !empresa || !motivo || !persona){
+    if(btn) btn.disabled = false;
     return alert("Completa todos los campos");
   }
 
-  const id = "VIS-" + Date.now();
+  const now = Date.now();
+  const id = "VIS-" + now;
 
   const data = {
     id,
@@ -232,69 +247,101 @@ function registrar(){
     empresa,
     motivoVisita: motivo,
     personaVisita: persona,
+
     status: "llegado",
     qrActivo: true,
-    llegadaTs: Date.now(),
-    createdTs: Date.now(),
-    serverTs: DB.serverTimestamp()
+
+    llegadaTs: now,
+    createdTs: now,
+    updatedTs: now,
+    serverTs: window.DB.serverTimestamp()
   };
 
-  DB.setDoc(DB.doc(DB.db, "visitas", id), data)
-    .then(() => renderResultado(data));
+  try{
+    await window.DB.setDoc(window.DB.doc(window.DB.db, "visitas", id), data);
+    renderResultado(data);
+  }catch(e){
+    console.error(e);
+    alert("No se pudo registrar. Revisa conexión.");
+    if(btn) btn.disabled = false;
+  }
 }
 
 function renderResultado(data){
   document.getElementById("formCard").style.display = "none";
-  startTime = Date.now();
 
   document.getElementById("resultado").innerHTML = `
     <div class="visitCard">
-      <b>${data.nombreVisitante}</b>
-      <div class="muted">${data.empresa}</div>
+      <b>${escapeHtml(data.nombreVisitante)}</b>
+      <div class="muted">${escapeHtml(data.empresa)}</div>
 
-      <div class="muted">Motivo: <b>${data.motivoVisita}</b></div>
-      <div class="muted">Visita a: <b>${data.personaVisita}</b></div>
+      <div class="muted">Motivo: <b>${escapeHtml(data.motivoVisita)}</b></div>
+      <div class="muted">Visita a: <b>${escapeHtml(data.personaVisita)}</b></div>
 
       <div class="meta">
-        <span class="pill"><span class="dot warn"></span>LLEGADO</span>
-        <span class="pill"><span class="dot ok"></span>QR Activo</span>
+        <span class="pill">
+          <span class="dot warn"></span>
+          REGISTRADO
+        </span>
+        <span class="pill">
+          <span class="dot ok"></span>
+          QR ACTIVO
+        </span>
       </div>
 
       <div class="qr-wrapper">
         <div id="qr"></div>
       </div>
 
-      <div class="counter">
-        Tiempo de espera
-        <span id="counter">00:00</span>
+      <div class="row">
+        <button class="secondary" id="btnGuardarQR" type="button">Guardar QR</button>
+        <button class="secondary" id="btnCompartirQR" type="button">Compartir QR</button>
       </div>
 
-      <p class="muted" style="text-align:center;margin-top:8px">
-        Por favor espere a que guardia valide su acceso
+      <p class="muted" style="text-align:center;margin-top:10px">
+        Conserva este QR para poder registrar tu <b>salida</b> al finalizar tu visita.
       </p>
     </div>
   `;
 
-  new QRCode(document.getElementById("qr"), {
-    text: data.id,
-    width: 220,
-    height: 220
-  });
+  const qrEl = document.getElementById("qr");
+  qrEl.innerHTML = "";
+  new QRCode(qrEl, { text: data.id, width: 220, height: 220 });
 
-  startCounter();
+  const canvas = qrEl.querySelector("canvas");
+  const qrDataUrl = canvas?.toDataURL("image/png");
+
+  document.getElementById("btnGuardarQR").onclick = () => {
+    if(!qrDataUrl) return alert("No se pudo generar el QR");
+    const a = document.createElement("a");
+    a.href = qrDataUrl;
+    a.download = `QR-${data.id}.png`;
+    a.click();
+  };
+
+  document.getElementById("btnCompartirQR").onclick = async () => {
+    if(!qrDataUrl || !navigator.share){
+      alert("Guarda el QR o toma captura de pantalla");
+      return;
+    }
+    const blob = await (await fetch(qrDataUrl)).blob();
+    const file = new File([blob], `QR-${data.id}.png`, {type:'image/png'});
+    await navigator.share({
+      title: "QR de Visitante",
+      text: "Conserva este QR para tu salida",
+      files: [file]
+    });
+  };
 }
 
-function startCounter(){
-  counterTimer = setInterval(() => {
-    const diff = Date.now() - startTime;
-    const min = Math.floor(diff / 60000);
-    const sec = Math.floor((diff % 60000) / 1000);
-    document.getElementById("counter").textContent =
-      String(min).padStart(2,"0") + ":" +
-      String(sec).padStart(2,"0");
-  }, 1000);
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[ch]));
 }
 </script>
+
+<!-- Service Worker -->
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
