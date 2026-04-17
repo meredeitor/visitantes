@@ -3,7 +3,7 @@ const CACHE_NAME = "visitantes-pwa-v1";
 const ASSETS = [
   "./",
   "./kiosk.html",
-  "./guardia.html",
+  "./index.html",
   "./manifest.json",
   "./service-worker.js"
 ];
