@@ -85,6 +85,8 @@
     .colTitle{ font-weight:800; margin:0 0 10px; display:flex; justify-content:space-between; }
     .muted{ color:#64748b; font-size:12px; }
 
+  .divider{ height:1px; background: rgba(15,23,42,.10); margin:12px 0; }
+
     .visitCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:14px;
@@ -112,7 +114,13 @@
     .toast p{ margin:0; font-size:12px; color:#475569; }
     .toast .badge{ width:10px; height:10px; border-radius:999px; margin-top:4px; flex:0 0 auto; }
 
-    #reader{
+    .table{ width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid rgba(15,23,42,.10); border-radius:12px; }
+.table th, .table td{ padding:10px; font-size:12px; border-bottom:1px solid rgba(15,23,42,.08); text-align:left; vertical-align:top; }
+.table th{ color:#475569; background: rgba(2,6,23,.04); }
+.table tr:hover td{ background: rgba(2,6,23,.03); }
+.table td code{ color:#2563eb; }
+
+#reader{
       width:100%;
       border-radius:14px;
       overflow:hidden;
@@ -188,6 +196,7 @@
       collection,
       doc,
       getDoc,
+      getDocs,
       setDoc,
       updateDoc,
       query,
@@ -225,7 +234,8 @@
       createUserWithEmailAndPassword,
 
       // firestore
-      collection, doc, getDoc, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot
+      collection, doc, getDoc,
+      getDocs, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot
     };
 
     console.log("🔥 Firebase listo (Auth + Firestore)");
@@ -264,7 +274,7 @@
   const WAIT_YELLOW_MAX = 15; // 6..15
   // 16+ => rojo
 
-  const VIEWS = { LOGIN:"login", DASH:"dash", SCAN:"scan", ALTA:"alta" };
+  const VIEWS = { LOGIN:"login", DASH:"dash", SCAN:"scan", ALTA:"alta", VIS:"visitantes" };
   let view = VIEWS.LOGIN;
 
   let currentUser = null;     // Firebase Auth user
@@ -377,6 +387,7 @@ function waitChip(esperaMin){
     if(view === VIEWS.DASH) return renderDashboard();
     if(view === VIEWS.SCAN) return renderScanner();
     if(view === VIEWS.ALTA) return renderAltaUsuario();
+    if(view === VIEWS.VIS) return renderVisitantes();
   }
 
   function dayBounds(d=new Date()){
@@ -514,6 +525,7 @@ const rojos = llegados.filter(v => {
       <div class="row" style="margin-bottom:12px;">
         <button class="secondary" id="btnScan">Escanear QR</button>
         <button class="secondary" id="btnManual">Acción manual por ID</button>
+      <button class="secondary" data-act="visitantes">Visitantes</button>
         ${adminBtn}
         <div class="spacer"></div>
         <span class="pill"><span class="dot warn"></span>Llegaron: <b style="color:#0f172a">${llegados.length}</b></span>
@@ -708,7 +720,184 @@ if(v.status === Status.LLEGADO){
     }
   }
 
-  function renderScanner(){
+  
+
+  // ---------- VISITANTES (Resumen + Tabla) ----------
+  async function fetchVisitantesByDay(dateISO){
+    const { db, collection, query, where, getDocs, limit } = window.__FB__;
+    const start = new Date(dateISO + "T00:00:00").getTime();
+    const end   = new Date(dateISO + "T23:59:59").getTime();
+
+    // Consulta simple para evitar índices compuestos: solo rango por createdTs
+    const q = query(
+      collection(db, "visitas"),
+      where("tipo", "==", "visitante"),
+      where("createdTs", ">=", start),
+      where("createdTs", "<=", end),
+      limit(800)
+    );
+
+    const snap = await getDocs(q);
+    const arr = [];
+    snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+
+    // Orden local (más reciente arriba)
+    arr.sort((a,b) => (b.llegadaTs || b.createdTs || 0) - (a.llegadaTs || a.createdTs || 0));
+    return arr;
+  }
+
+  function renderVisitantes(){
+    const todayISO = new Date().toISOString().slice(0,10);
+    appEl.innerHTML = `
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <h2 style="margin:0 0 4px;">Visitantes</h2>
+            <div class="muted">Filtros → Cargar → Tabla</div>
+          </div>
+          <div class="row">
+            <button class="secondary" data-act="volverVisitantes">Volver</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row" style="gap:12px; flex-wrap:wrap;">
+          <div style="min-width:200px;">
+            <label>Día</label>
+            <input type="date" id="visFecha" value="${todayISO}">
+          </div>
+
+          <div style="min-width:200px;">
+            <label>Estatus</label>
+            <select id="visStatus">
+              <option value="">Todos</option>
+              <option value="llegado">Llegado</option>
+              <option value="dentro">Dentro</option>
+              <option value="finalizado">Finalizado</option>
+            </select>
+          </div>
+
+          <div style="min-width:260px; flex:1;">
+            <label>Buscar</label>
+            <input id="visSearch" placeholder="Nombre / Empresa / ID...">
+          </div>
+
+          <div style="align-self:flex-end;">
+            <button class="secondary" data-act="loadVisitantes">Cargar</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="visResumen" class="row" style="gap:8px; flex-wrap:wrap;"></div>
+        <div id="visTabla" style="margin-top:10px;"></div>
+      </div>
+    `;
+
+    document.getElementById('visTabla').innerHTML = `<div class="muted">Presiona “Cargar”.</div>`;
+    document.getElementById('visResumen').innerHTML = '';
+  }
+
+  async function loadVisitantes(){
+    const fecha  = document.getElementById('visFecha')?.value;
+    const status = (document.getElementById('visStatus')?.value || '').trim();
+    const term   = (document.getElementById('visSearch')?.value || '').trim().toLowerCase();
+
+    const resEl = document.getElementById('visResumen');
+    const tabEl = document.getElementById('visTabla');
+    if(!fecha || !resEl || !tabEl) return;
+
+    resEl.innerHTML = `<span class="pill"><span class="dot info"></span>Cargando…</span>`;
+    tabEl.innerHTML = '';
+
+    try{
+      const hoyISO = new Date().toISOString().slice(0,10);
+      let list = [];
+
+      if(fecha === hoyISO){
+        // Usa cache realtime del día (mismo patrón que tu dashboard)
+        list = (visitasHoy || []).filter(x => x.tipo === 'visitante');
+        list.sort((a,b) => (b.llegadaTs || b.createdTs || 0) - (a.llegadaTs || a.createdTs || 0));
+      } else {
+        list = await fetchVisitantesByDay(fecha);
+      }
+
+      if(status) list = list.filter(v => (v.status || '') === status);
+
+      if(term){
+        list = list.filter(v =>
+          String(v.id || '').toLowerCase().includes(term) ||
+          String(v.nombreVisitante || '').toLowerCase().includes(term) ||
+          String(v.empresa || '').toLowerCase().includes(term) ||
+          String(v.personaVisita || '').toLowerCase().includes(term) ||
+          String(v.motivoVisita || '').toLowerCase().includes(term)
+        );
+      }
+
+      // KPIs
+      const total = list.length;
+      const llegados = list.filter(v => v.status === 'llegado').length;
+      const dentro = list.filter(v => v.status === 'dentro').length;
+      const fin = list.filter(v => v.status === 'finalizado').length;
+
+      resEl.innerHTML = `
+        <span class="pill"><span class="dot brand"></span>Total: <b style="color:#0f172a; margin-left:6px;">${total}</b></span>
+        <span class="pill"><span class="dot warn"></span>Llegados: <b style="color:#0f172a; margin-left:6px;">${llegados}</b></span>
+        <span class="pill"><span class="dot ok"></span>Dentro: <b style="color:#0f172a; margin-left:6px;">${dentro}</b></span>
+        <span class="pill"><span class="dot muted"></span>Finalizados: <b style="color:#0f172a; margin-left:6px;">${fin}</b></span>
+      `;
+
+      if(!list.length){
+        tabEl.innerHTML = `<div class="muted">Sin registros con esos filtros.</div>`;
+        return;
+      }
+
+      const badge = (s) => {
+        if(s === 'llegado') return `<span class="pill"><span class="dot warn"></span>LLEGADO</span>`;
+        if(s === 'dentro') return `<span class="pill"><span class="dot ok"></span>DENTRO</span>`;
+        if(s === 'finalizado') return `<span class="pill"><span class="dot muted"></span>FINALIZADO</span>`;
+        return `<span class="pill">${esc(s || '-') }</span>`;
+      };
+
+      tabEl.innerHTML = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Visitante</th>
+              <th>Empresa</th>
+              <th>Motivo</th>
+              <th>Visita a</th>
+              <th>Estatus</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(v => {
+              const hora = v.llegadaTs ? new Date(v.llegadaTs).toLocaleTimeString() : '-';
+              return `
+                <tr>
+                  <td>${esc(hora)}</td>
+                  <td><b>${esc(v.nombreVisitante || '-') }</b><br><code>${esc(v.id)}</code></td>
+                  <td>${esc(v.empresa || '-') }</td>
+                  <td>${esc(v.motivoVisita || '-') }</td>
+                  <td>${esc(v.personaVisita || '-') }</td>
+                  <td>${badge(v.status || '-') }</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+
+    } catch(e){
+      console.error(e);
+      resEl.innerHTML = `<span class="pill"><span class="dot bad"></span>Error</span>`;
+      tabEl.innerHTML = `<div class="muted">Error cargando visitantes (Rules/Internet).</div>`;
+      toast('Visitantes','No se pudo cargar. Revisa conexión y Rules.','bad',4200);
+    }
+  }
+function renderScanner(){
     appEl.innerHTML = `
       <div class="card" style="max-width:900px;margin:0 auto;">
         <div class="row" style="justify-content:space-between;">
@@ -870,27 +1059,48 @@ if(v.status === Status.LLEGADO){
 
   // Click actions en tarjetas
   document.addEventListener("click", async (e) => {
-    const btn = e.target.closest("[data-act]");
-    if(!btn) return;
+  const btn = e.target.closest("[data-act]");
+  if(!btn) return;
 
-    const act = btn.dataset.act;
-    const id  = btn.dataset.id;
+  const act = btn.dataset.act;
+  const id  = btn.dataset.id;
 
-    if(act === "darAcceso"){
-      const gafete = prompt("No. de gafete:");
-      if(!gafete) return;
-      await darAcceso(id, String(gafete).trim());
-    }
+  // ✅ VISITANTES
+  if(act === "visitantes"){
+    console.log("➡️ goTo VIS");
+    goTo(VIEWS.VIS);
+    return;
+  }
 
-   if(act === "darSalida"){
-  // buscamos info para mostrar en el modal
-  const v = visitasHoy.find(x => x.id === id) || {};
-  const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id: id });
-  if(inc === null) return; // canceló
-  await darSalida(id, inc);
-}
+  if(act === "loadVisitantes"){
+    console.log("➡️ loadVisitantes");
+    await loadVisitantes();
+    return;
+  }
 
-  });
+  if(act === "volverVisitantes"){
+    console.log("➡️ goTo DASH");
+    goTo(VIEWS.DASH);
+    return;
+  }
+
+  // ✅ EXISTENTE
+  if(act === "darAcceso"){
+    const gafete = prompt("No. de gafete:");
+    if(!gafete) return;
+    await darAcceso(id, String(gafete).trim());
+    return;
+  }
+
+  if(act === "darSalida"){
+    const v = visitasHoy.find(x => x.id === id) || {};
+    const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id });
+    if(inc === null) return;
+    await darSalida(id, inc);
+    return;
+  }
+});
+
 
   // ---------- REALTIME HOY ----------
   function startListenerHoy(){
@@ -990,7 +1200,7 @@ if(v.status === Status.LLEGADO){
 })();
 </script>
 <script>
-if ("serviceWorker" in navigator) {
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("./service-worker.js")
