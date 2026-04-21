@@ -4,53 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Registro de Visitantes</title>
-
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#2563eb">
-
   <!-- QRCode.js -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
       background:#f6f8fc;
       color:#0f172a;
     }
-
     .container{
       max-width:420px;
       margin:0 auto;
       padding:16px;
     }
-
-    h1{
-      text-align:center;
-      margin-bottom:6px;
-    }
-
-    .muted{
-      color:#64748b;
-      font-size:13px;
-    }
-
+    h1{ text-align:center; margin-bottom:6px; }
+    .muted{ color:#64748b; font-size:13px; }
     .card{
       background:#fff;
       border-radius:14px;
       padding:16px;
       box-shadow:0 10px 24px rgba(0,0,0,.08);
     }
-
-    label{
-      display:block;
-      font-size:13px;
-      color:#475569;
-      margin:10px 0 4px;
-    }
-
+    label{ display:block; font-size:13px; color:#475569; margin:10px 0 4px; }
     input, select{
       width:100%;
       padding:10px;
@@ -59,7 +39,6 @@
       font-size:15px;
       background:#fff;
     }
-
     button{
       margin-top:14px;
       width:100%;
@@ -72,18 +51,8 @@
       font-weight:600;
       cursor:pointer;
     }
-
-    button.secondary{
-      background:#e5e7eb;
-      color:#0f172a;
-    }
-
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:center;
-    }
+    button.secondary{ background:#e5e7eb; color:#0f172a; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
 
     /* ===== FICHA ESTILO GUARDIA ===== */
     .visitCard{
@@ -94,16 +63,8 @@
       box-shadow:0 8px 16px rgba(2,6,23,.06);
       margin-top:16px;
     }
-
     .visitCard b{ font-size:15px; }
-
-    .meta{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-
+    .meta{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
     .pill{
       display:inline-flex;
       align-items:center;
@@ -114,15 +75,11 @@
       background:rgba(255,255,255,.7);
       font-size:12px;
     }
-
-    .dot{
-      width:8px;
-      height:8px;
-      border-radius:50%;
-    }
+    .dot{ width:8px; height:8px; border-radius:50%; }
     .dot.warn{ background:#d97706; }
     .dot.ok{ background:#16a34a; }
     .dot.info{ background:#0284c7; }
+    .dot.bad{ background:#dc2626; }
 
     /* ===== QR centrado ===== */
     .qr-wrapper{
@@ -135,20 +92,6 @@
     .qr-wrapper img{
       margin:0 auto;
       display:block;
-    }
-
-    /* ===== CONTADOR ===== */
-    .counter{
-      margin-top:12px;
-      text-align:center;
-      font-size:15px;
-      font-weight:600;
-    }
-    .counter span{
-      font-size:28px;
-      display:block;
-      margin-top:4px;
-      color:#2563eb;
     }
   </style>
 
@@ -169,188 +112,185 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     window.DB = { db, doc, setDoc, serverTimestamp };
   </script>
 </head>
 
 <body>
-<div class="container">
-  <h1>Registro de Visitantes</h1>
-  <p class="muted" style="text-align:center">
-    Ingresa tus datos y espera validación de guardia
-  </p>
+  <div class="container">
+    <h1>Registro de Visitantes</h1>
+    <p class="muted" style="text-align:center">
+      Ingresa tus datos y espera <b>autorización</b> de guardia
+    </p>
 
-  <!-- FORM -->
-  <div class="card" id="formCard">
-    <label>Nombre completo</label>
-    <input id="nombre">
+    <!-- FORM -->
+    <div class="card" id="formCard">
+      <label>Nombre completo</label>
+      <input id="nombre">
 
-    <label>Empresa</label>
-    <input id="empresa">
+      <label>Empresa</label>
+      <input id="empresa">
 
-    <label>Motivo de la visita</label>
-    <select id="motivo">
-      <option value="">Seleccione…</option>
-      <option>Entrega</option>
-      <option>Visita</option>
-      <option>Entrevista</option>
-      <option>Junta</option>
-      <option>Servicio</option>
-      <option>Pago</option>
-      <option>Exámen médico</option>
-      <option>Otro</option>
-    </select>
+      <label>Motivo de la visita</label>
+      <select id="motivo">
+        <option value="">Seleccione…</option>
+        <option>Entrega</option>
+        <option>Visita</option>
+        <option>Entrevista</option>
+        <option>Junta</option>
+        <option>Servicio</option>
+        <option>Pago</option>
+        <option>Exámen médico</option>
+        <option>Otro</option>
+      </select>
 
-    <label>Persona a quien visita</label>
-    <select id="persona">
-      <option value="">Seleccione…</option>
-      <option>Jaqueline Gómez</option>
-      <option>Julia Saralegui</option>
-      <option>Mayela Reynaga</option>
-      <option>Jorge Olvera</option>
-      <option>Yolanda Hurtado</option>
-      <option>Paola Palomares</option>
-    </select>
+      <label>Persona a quien visita</label>
+      <select id="persona">
+        <option value="">Seleccione…</option>
+        <option>Jaqueline Gómez</option>
+        <option>Julia Saralegui</option>
+        <option>Mayela Reynaga</option>
+        <option>Jorge Olvera</option>
+        <option>Yolanda Hurtado</option>
+        <option>Paola Palomares</option>
+      </select>
 
-    <button id="btnRegistrar" onclick="registrar()">Registrar</button>
+      <button id="btnRegistrar" onclick="registrar()">Registrar</button>
+    </div>
+
+    <div id="resultado"></div>
   </div>
 
-  <div id="resultado"></div>
-</div>
+  <script>
+    async function registrar(){
+      const btn = document.getElementById("btnRegistrar");
+      if(btn) btn.disabled = true;
 
-<script>
+      const nombre = document.getElementById("nombre").value.trim();
+      const empresa = document.getElementById("empresa").value.trim();
+      const motivo = document.getElementById("motivo").value;
+      const persona = document.getElementById("persona").value;
 
+      if(!nombre || !empresa || !motivo || !persona){
+        if(btn) btn.disabled = false;
+        return alert("Completa todos los campos");
+      }
 
-// Timer visual (solo para mostrar espera en kiosk)
-async function registrar(){
-  const btn = document.getElementById("btnRegistrar");
-  if(btn) btn.disabled = true;
+      const now = Date.now();
+      const id = "VIS-" + now;
 
-  const nombre  = document.getElementById("nombre").value.trim();
-  const empresa = document.getElementById("empresa").value.trim();
-  const motivo  = document.getElementById("motivo").value;
-  const persona = document.getElementById("persona").value;
+      const data = {
+        id,
+        tipo: "visitante",
+        origen: "kiosk",
+        nombreVisitante: nombre,
+        empresa,
+        motivoVisita: motivo,
+        personaVisita: persona,
 
-  if(!nombre || !empresa || !motivo || !persona){
-    if(btn) btn.disabled = false;
-    return alert("Completa todos los campos");
-  }
+        // ✅ NUEVO: desde kiosko queda pendiente
+        status: "autorizacion",
 
-  const now = Date.now();
-  const id = "VIS-" + now;
+        qrActivo: true,
+        // no ponemos llegadaTs todavía, porque NO ha sido autorizado
+        llegadaTs: null,
+        createdTs: now,
+        updatedTs: now,
+        serverTs: window.DB.serverTimestamp()
+      };
 
-  const data = {
-    id,
-    tipo: "visitante",
-    nombreVisitante: nombre,
-    empresa,
-    motivoVisita: motivo,
-    personaVisita: persona,
-
-    status: "llegado",
-    qrActivo: true,
-
-    llegadaTs: now,
-    createdTs: now,
-    updatedTs: now,
-    serverTs: window.DB.serverTimestamp()
-  };
-
-  try{
-    await window.DB.setDoc(window.DB.doc(window.DB.db, "visitas", id), data);
-    renderResultado(data);
-  }catch(e){
-    console.error(e);
-    alert("No se pudo registrar. Revisa conexión.");
-    if(btn) btn.disabled = false;
-  }
-}
-
-function renderResultado(data){
-  document.getElementById("formCard").style.display = "none";
-
-  document.getElementById("resultado").innerHTML = `
-    <div class="visitCard">
-      <b>${escapeHtml(data.nombreVisitante)}</b>
-      <div class="muted">${escapeHtml(data.empresa)}</div>
-
-      <div class="muted">Motivo: <b>${escapeHtml(data.motivoVisita)}</b></div>
-      <div class="muted">Visita a: <b>${escapeHtml(data.personaVisita)}</b></div>
-
-      <div class="meta">
-        <span class="pill">
-          <span class="dot warn"></span>
-          REGISTRADO
-        </span>
-        <span class="pill">
-          <span class="dot ok"></span>
-          QR ACTIVO
-        </span>
-      </div>
-
-      <div class="qr-wrapper">
-        <div id="qr"></div>
-      </div>
-
-      <div class="row">
-        <button class="secondary" id="btnGuardarQR" type="button">Guardar QR</button>
-        <button class="secondary" id="btnCompartirQR" type="button">Compartir QR</button>
-      </div>
-
-      <p class="muted" style="text-align:center;margin-top:10px">
-        Conserva este QR para poder registrar tu <b>salida</b> al finalizar tu visita.
-      </p>
-    </div>
-  `;
-
-  const qrEl = document.getElementById("qr");
-  qrEl.innerHTML = "";
-  new QRCode(qrEl, { text: data.id, width: 220, height: 220 });
-
-  const canvas = qrEl.querySelector("canvas");
-  const qrDataUrl = canvas?.toDataURL("image/png");
-
-  document.getElementById("btnGuardarQR").onclick = () => {
-    if(!qrDataUrl) return alert("No se pudo generar el QR");
-    const a = document.createElement("a");
-    a.href = qrDataUrl;
-    a.download = `QR-${data.id}.png`;
-    a.click();
-  };
-
-  document.getElementById("btnCompartirQR").onclick = async () => {
-    if(!qrDataUrl || !navigator.share){
-      alert("Guarda el QR o toma captura de pantalla");
-      return;
+      try{
+        await window.DB.setDoc(window.DB.doc(window.DB.db, "visitas", id), data);
+        renderResultado(data);
+      }catch(e){
+        console.error(e);
+        alert("No se pudo registrar. Revisa conexión.");
+        if(btn) btn.disabled = false;
+      }
     }
-    const blob = await (await fetch(qrDataUrl)).blob();
-    const file = new File([blob], `QR-${data.id}.png`, {type:'image/png'});
-    await navigator.share({
-      title: "QR de Visitante",
-      text: "Conserva este QR para tu salida",
-      files: [file]
-    });
-  };
-}
 
-function escapeHtml(s){
-  return String(s ?? "").replace(/[&<>"']/g, (ch) => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[ch]));
-}
-</script>
+    function renderResultado(data){
+      document.getElementById("formCard").style.display = "none";
+      document.getElementById("resultado").innerHTML = `
+        <div class="visitCard">
+          <b>${escapeHtml(data.nombreVisitante)}</b>
+          <div class="muted">${escapeHtml(data.empresa)}</div>
+          <div class="muted">Motivo: <b>${escapeHtml(data.motivoVisita)}</b></div>
+          <div class="muted">Visita a: <b>${escapeHtml(data.personaVisita)}</b></div>
 
-<!-- Service Worker -->
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("./service-worker.js")
-      .then(() => console.log("✅ Service Worker registrado"))
-      .catch(err => console.error("❌ SW error", err));
-  });
-}
-</script>
+          <div class="meta">
+            <span class="pill">
+              <span class="dot warn"></span>
+              PENDIENTE AUTORIZACIÓN
+            </span>
+            <span class="pill">
+              <span class="dot ok"></span>
+              QR ACTIVO
+            </span>
+          </div>
+
+          <div class="qr-wrapper">
+            <div id="qr"></div>
+          </div>
+
+          <div class="row">
+            <button class="secondary" id="btnGuardarQR" type="button">Guardar QR</button>
+            <button class="secondary" id="btnCompartirQR" type="button">Compartir QR</button>
+          </div>
+
+          <p class="muted" style="text-align:center;margin-top:10px">
+            Conserva este QR. Cuando guardia autorice tu entrada, podrán escanearlo para registrar <b>entrada/salida</b>.
+          </p>
+        </div>
+      `;
+
+      const qrEl = document.getElementById("qr");
+      qrEl.innerHTML = "";
+      new QRCode(qrEl, { text: data.id, width: 220, height: 220 });
+
+      const canvas = qrEl.querySelector("canvas");
+      const qrDataUrl = canvas?.toDataURL("image/png");
+
+      document.getElementById("btnGuardarQR").onclick = () => {
+        if(!qrDataUrl) return alert("No se pudo generar el QR");
+        const a = document.createElement("a");
+        a.href = qrDataUrl;
+        a.download = `QR-${data.id}.png`;
+        a.click();
+      };
+
+      document.getElementById("btnCompartirQR").onclick = async () => {
+        if(!qrDataUrl || !navigator.share){
+          alert("Guarda el QR o toma captura de pantalla");
+          return;
+        }
+        const blob = await (await fetch(qrDataUrl)).blob();
+        const file = new File([blob], `QR-${data.id}.png`, {type:'image/png'});
+        await navigator.share({
+          title: "QR de Visitante",
+          text: "Conserva este QR para tu visita",
+          files: [file]
+        });
+      };
+    }
+
+    function escapeHtml(s){
+      return String(s ?? "").replace(/[&<>"']/g, (ch) => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[ch]));
+    }
+  </script>
+
+  <!-- Service Worker -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("./service-worker.js")
+          .then(() => console.log("✅ Service Worker registrado"))
+          .catch(err => console.error("❌ SW error", err));
+      });
+    }
+  </script>
 </body>
 </html>
