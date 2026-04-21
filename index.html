@@ -5,14 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Guardia · Visitantes</title>
   <link rel="manifest" href="manifest.json" />
-  
+
   <!-- html5-qrcode (CDN) -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <!-- QRCode.js (para generar QR en citas programadas / ver QR) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <style>
     /* Reset */
     *, *::before, *::after { box-sizing: border-box; }
-
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
@@ -27,7 +29,6 @@
     .container{ max-width:1100px; margin:0 auto; padding:16px; }
     .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .spacer{ flex:1; }
-
     .card{
       background:#fff;
       border:1px solid rgba(15,23,42,.10);
@@ -37,10 +38,13 @@
     }
     .two{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .three{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-    @media (max-width:980px){ .three{ grid-template-columns:1fr; } .two{ grid-template-columns:1fr; } }
-
+    .five{ display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; }
+    @media (max-width:980px){
+      .five{ grid-template-columns:1fr; }
+      .three{ grid-template-columns:1fr; }
+      .two{ grid-template-columns:1fr; }
+    }
     label{ font-size:13px; color:#475569; display:block; margin:10px 0 6px; }
-
     input, select{
       width:100%;
       max-width:100%;
@@ -51,7 +55,6 @@
       font-size:15px;
       background:#fff;
     }
-
     button{
       background:#2563eb;
       color:#fff;
@@ -85,8 +88,7 @@
 
     .colTitle{ font-weight:800; margin:0 0 10px; display:flex; justify-content:space-between; }
     .muted{ color:#64748b; font-size:12px; }
-
-  .divider{ height:1px; background: rgba(15,23,42,.10); margin:12px 0; }
+    .divider{ height:1px; background: rgba(15,23,42,.10); margin:12px 0; }
 
     .visitCard{
       border:1px solid rgba(15,23,42,.10);
@@ -116,74 +118,71 @@
     .toast .badge{ width:10px; height:10px; border-radius:999px; margin-top:4px; flex:0 0 auto; }
 
     .table{ width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid rgba(15,23,42,.10); border-radius:12px; }
-.table th, .table td{ padding:10px; font-size:12px; border-bottom:1px solid rgba(15,23,42,.08); text-align:left; vertical-align:top; }
-.table th{ color:#475569; background: rgba(2,6,23,.04); }
-.table tr:hover td{ background: rgba(2,6,23,.03); }
-.table td code{ color:#2563eb; }
+    .table th, .table td{ padding:10px; font-size:12px; border-bottom:1px solid rgba(15,23,42,.08); text-align:left; vertical-align:top; }
+    .table th{ color:#475569; background: rgba(2,6,23,.04); }
+    .table tr:hover td{ background: rgba(2,6,23,.03); }
+    .table td code{ color:#2563eb; }
 
-#reader{
+    #reader{
       width:100%;
       border-radius:14px;
       overflow:hidden;
       border:1px solid rgba(15,23,42,.12);
       background:#fff;
     }
-    /* ===== Semáforo en la tarjeta (solo visual) ===== */
-.visitCard.rag-ok{
-  border-color: rgba(22,163,74,.55);
-  background: rgba(22,163,74,.08);
-}
-.visitCard.rag-warn{
-  border-color: rgba(217,119,6,.55);
-  background: rgba(217,119,6,.10);
-}
-.visitCard.rag-bad{
-  border-color: rgba(220,38,38,.55);
-  background: rgba(220,38,38,.10);
-}
 
-/* Opcional: barra lateral para que sea más llamativo */
-.visitCard.rag-ok{ box-shadow: inset 6px 0 0 rgba(22,163,74,.70), 0 8px 16px rgba(2,6,23,.06); }
-.visitCard.rag-warn{ box-shadow: inset 6px 0 0 rgba(217,119,6,.75), 0 8px 16px rgba(2,6,23,.06); }
-.visitCard.rag-bad{ box-shadow: inset 6px 0 0 rgba(220,38,38,.75), 0 8px 16px rgba(2,6,23,.06); }
- 
-/* ===== Modal Incidencias ===== */
-.modal-backdrop{
-  position:fixed; inset:0;
-  background: rgba(0,0,0,.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:16px;
-  z-index:99999;
-}
-.modal{
-  width:min(560px, 96vw);
-  background:#fff;
-  border:1px solid rgba(15,23,42,.12);
-  border-radius:14px;
-  box-shadow:0 18px 40px rgba(2,6,23,.18);
-  padding:16px;
-}
-.modal h3{ margin:0 0 6px; }
-.modal .muted{ margin:0 0 10px; }
-.modal textarea{
-  width:100%;
-  min-height:110px;
-  resize:vertical;
-  padding:10px 12px;
-  border-radius:10px;
-  border:1px solid #cbd5f5;
-  font-size:14px;
-  background:#fff;
-}
- 
- </style>
+    /* ===== Semáforo en la tarjeta (solo visual) ===== */
+    .visitCard.rag-ok{
+      border-color: rgba(22,163,74,.55);
+      background: rgba(22,163,74,.08);
+      box-shadow: inset 6px 0 0 rgba(22,163,74,.70), 0 8px 16px rgba(2,6,23,.06);
+    }
+    .visitCard.rag-warn{
+      border-color: rgba(217,119,6,.55);
+      background: rgba(217,119,6,.10);
+      box-shadow: inset 6px 0 0 rgba(217,119,6,.75), 0 8px 16px rgba(2,6,23,.06);
+    }
+    .visitCard.rag-bad{
+      border-color: rgba(220,38,38,.55);
+      background: rgba(220,38,38,.10);
+      box-shadow: inset 6px 0 0 rgba(220,38,38,.75), 0 8px 16px rgba(2,6,23,.06);
+    }
+
+    /* ===== Modal (Incidencias / PIN / QR) ===== */
+    .modal-backdrop{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:99999;
+    }
+    .modal{
+      width:min(560px, 96vw);
+      background:#fff;
+      border:1px solid rgba(15,23,42,.12);
+      border-radius:14px;
+      box-shadow:0 18px 40px rgba(2,6,23,.18);
+      padding:16px;
+    }
+    .modal h3{ margin:0 0 6px; }
+    .modal .muted{ margin:0 0 10px; }
+    .modal textarea{
+      width:100%;
+      min-height:110px;
+      resize:vertical;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #cbd5f5;
+      font-size:14px;
+      background:#fff;
+    }
+  </style>
 
   <!-- ========= FIREBASE (CDN modular) ========= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-
     import {
       getAuth,
       signInWithEmailAndPassword,
@@ -191,7 +190,6 @@
       signOut,
       createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-
     import {
       getFirestore,
       collection,
@@ -207,8 +205,8 @@
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-    // ✅ Tu config real
-    const firebaseConfig = {
+    // ✅ Tu config real (misma que tu index actual)
+   const firebaseConfig = {
       apiKey: "AIzaSyA0mn8aVRKPpF-yiNVTb2FKqyhHg3lQmpg",
       authDomain: "visitantes-d671e.firebaseapp.com",
       projectId: "visitantes-d671e",
@@ -217,7 +215,7 @@
       appId: "1:697592280672:web:8824bdd0488cf10bd77505"
     };
 
-    // App principal (sesión guardia/admin)
+    // App principal (sesión guardia/admin/anfitrión)
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -227,18 +225,11 @@
     const auth2 = getAuth(app2);
 
     window.__FB__ = {
-      // apps
       auth, auth2, db,
-
-      // auth
       signInWithEmailAndPassword, onAuthStateChanged, signOut,
       createUserWithEmailAndPassword,
-
-      // firestore
-      collection, doc, getDoc,
-      getDocs, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot
+      collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot
     };
-
     console.log("🔥 Firebase listo (Auth + Firestore)");
   </script>
 </head>
@@ -246,7 +237,7 @@
 <body>
 <header>
   <div class="container row">
-    <div class="pill"><span class="dot brand"></span><b style="color:#0f172a">Visitantes</b> · Guardia</div>
+    <div class="pill"><span class="dot brand"></span><b style="color:#0f172a">Visitantes</b> · Control de Accesos</div>
     <div class="spacer"></div>
     <div id="userPill" class="pill" style="display:none;"></div>
     <button id="btnLogout" class="secondary" style="display:none;">Cerrar sesión</button>
@@ -256,7 +247,6 @@
 <main class="container">
   <div id="app"></div>
 </main>
-
 <div class="toast-wrap" id="toasts"></div>
 
 <script>
@@ -268,110 +258,48 @@
   const userPill = document.getElementById("userPill");
   const btnLogout = document.getElementById("btnLogout");
 
-  const Status = { LLEGADO:"llegado", DENTRO:"dentro", FINALIZADO:"finalizado" };
+  const ROLES = { ADMIN:"admin", GUARDIA:"guardia", ANFITRION:"anfitrion" };
 
-  // Semáforo de espera (LLEGADO -> DENTRO)
-  const WAIT_GREEN_MAX = 5;   // 0..5
-  const WAIT_YELLOW_MAX = 15; // 6..15
-  // 16+ => rojo
+  const Status = {
+    PROGRAMADO: "programado",
+    AUTORIZACION: "autorizacion",
+    RECHAZADO: "rechazado",
+    LLEGADO: "llegado",
+    DENTRO: "dentro",
+    FINALIZADO: "finalizado"
+  };
 
-  const VIEWS = { LOGIN:"login", DASH:"dash", SCAN:"scan", ALTA:"alta", VIS:"visitantes" };
+  const WAIT_GREEN_MAX = 5;
+  const WAIT_YELLOW_MAX = 15;
+
+  const VIEWS = {
+    LOGIN: "login",
+    DASH: "dash",
+    SCAN: "scan",
+    ALTA: "alta",
+    VIS: "visitantes",
+    CITA: "cita",
+    USERS: "usuarios"
+  };
+
   let view = VIEWS.LOGIN;
-
-  let currentUser = null;     // Firebase Auth user
-  let userProfile = null;     // Firestore users/{uid}
-  let userRole = null;        // "admin" | "guardia"
-
+  let currentUser = null;
+  let userProfile = null;
+  let userRole = null;
   let unsubscribeHoy = null;
   let visitasHoy = [];
-
-  let scanner = null; // Html5QrcodeScanner
-
-  // helpers
-
-  function askIncidenciaSalida({ nombre, id }){
-  return new Promise((resolve) => {
-    const back = document.createElement("div");
-    back.className = "modal-backdrop";
-    back.innerHTML = `
-      <div class="modal">
-        <h3>Registrar salida</h3>
-        <p class="muted">Visitante: <b>${esc(nombre || "-")}</b> · ID: <b>${esc(id || "")}</b></p>
-
-        <label>Incidencias (opcional)</label>
-        <textarea id="incTxt" placeholder="Ej. No devolvió gafete a la primera, se detectó objeto no permitido, se negó a firmar, etc."></textarea>
-
-        <div style="height:12px"></div>
-        <div class="row" style="justify-content:flex-end;">
-          <button class="secondary" id="btnCancelInc">Cancelar</button>
-          <button class="danger" id="btnOkInc">Confirmar salida</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(back);
-
-    const close = () => { try{ back.remove(); }catch{} };
-
-    back.addEventListener("click", (e) => {
-      if(e.target === back){ close(); resolve(null); } // click afuera = cancelar
-    });
-
-    back.querySelector("#btnCancelInc").onclick = () => { close(); resolve(null); };
-    back.querySelector("#btnOkInc").onclick = () => {
-      const val = (back.querySelector("#incTxt").value || "").trim();
-      close();
-      resolve(val); // puede ser "" si no puso nada
-    };
-
-    // focus automático
-    setTimeout(() => back.querySelector("#incTxt")?.focus(), 0);
-  });
-}
-
-  function waitRag(esperaMin){
-  if(esperaMin == null) return null;
-
-  if(esperaMin <= WAIT_GREEN_MAX){
-    return { color: "ok", label: "VERDE", dot: "ok" };
-  }
-  if(esperaMin <= WAIT_YELLOW_MAX){
-    return { color: "warn", label: "AMARILLO", dot: "warn" };
-  }
-  return { color: "bad", label: "ROJO", dot: "bad" };
-}
-
-function waitChip(esperaMin){
-  const r = waitRag(esperaMin);
-  if(!r) return "";
-
-  const bg =
-    r.dot === "ok" ? "rgba(22,163,74,.12)" :
-    r.dot === "warn" ? "rgba(217,119,6,.14)" :
-    "rgba(220,38,38,.14)";
-
-  const br =
-    r.dot === "ok" ? "rgba(22,163,74,.45)" :
-    r.dot === "warn" ? "rgba(217,119,6,.45)" :
-    "rgba(220,38,38,.45)";
-
-  return `<span class="pill" title="Semáforo de espera (Llegado→Dentro)"
-            style="background:${bg}; border-color:${br};">
-            <span class="dot ${r.dot}"></span>
-            Espera: <b style="color:#0f172a">${esperaMin} min</b> · ${r.label}
-          </span>`;
-}
+  let scanner = null;
 
   const $ = (sel, root=document) => root.querySelector(sel);
-  const esc = (s="") => String(s).replace(/[&<>"']/g, ch => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[ch]));
+  const esc = (s="") => String(s ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[ch] || ch));
 
   function toast(title, msg, type="info", ttl=2600){
     const badgeColor =
       type==="ok" ? "#16a34a" :
       type==="warn" ? "#d97706" :
       type==="bad" ? "#dc2626" : "#0284c7";
-
     const el = document.createElement("div");
     el.className = "toast";
     el.innerHTML = `
@@ -379,7 +307,7 @@ function waitChip(esperaMin){
       <div><b>${esc(title)}</b><p>${esc(msg)}</p></div>
     `;
     toasts.appendChild(el);
-    setTimeout(()=>el.remove(), ttl);
+    setTimeout(() => el.remove(), ttl);
   }
 
   function goTo(next){
@@ -389,6 +317,8 @@ function waitChip(esperaMin){
     if(view === VIEWS.SCAN) return renderScanner();
     if(view === VIEWS.ALTA) return renderAltaUsuario();
     if(view === VIEWS.VIS) return renderVisitantes();
+    if(view === VIEWS.CITA) return renderNuevaCita();
+    if(view === VIEWS.USERS) return renderUsuarios();
   }
 
   function dayBounds(d=new Date()){
@@ -408,24 +338,206 @@ function waitChip(esperaMin){
       (entrada && llegada) ? mins(entrada - llegada) :
       (v.status === Status.LLEGADO && llegada) ? mins(now - llegada) : null;
 
-    const dentroMin =
-      (salida && entrada) ? mins(salida - entrada) : null;
-
-    const totalMin =
-      (salida && llegada) ? mins(salida - llegada) : null;
-
+    const dentroMin = (salida && entrada) ? mins(salida - entrada) : null;
+    const totalMin  = (salida && llegada) ? mins(salida - llegada) : null;
     return { esperaMin, dentroMin, totalMin };
   }
 
+  function waitRag(esperaMin){
+    if(esperaMin == null) return null;
+    if(esperaMin <= WAIT_GREEN_MAX) return { dot:"ok", label:"VERDE" };
+    if(esperaMin <= WAIT_YELLOW_MAX) return { dot:"warn", label:"AMARILLO" };
+    return { dot:"bad", label:"ROJO" };
+  }
+
+  function waitChip(esperaMin){
+    const r = waitRag(esperaMin);
+    if(!r) return "";
+    const bg = r.dot === "ok" ? "rgba(22,163,74,.12)" : r.dot === "warn" ? "rgba(217,119,6,.14)" : "rgba(220,38,38,.14)";
+    const br = r.dot === "ok" ? "rgba(22,163,74,.45)" : r.dot === "warn" ? "rgba(217,119,6,.45)" : "rgba(220,38,38,.45)";
+    return `<span class="pill" title="Semáforo de espera (Llegado→Dentro)" style="background:${bg}; border-color:${br};">
+      <span class="dot ${r.dot}"></span>
+      Espera: <b style="color:#0f172a">${esperaMin} min</b> · ${r.label}
+    </span>`;
+  }
+
   function statusPill(v){
+    if(v.status === Status.PROGRAMADO) return `<span class="pill"><span class="dot info"></span>PROGRAMADO</span>`;
+    if(v.status === Status.AUTORIZACION) return `<span class="pill"><span class="dot warn"></span>PEND. AUTORIZACIÓN</span>`;
+    if(v.status === Status.RECHAZADO) return `<span class="pill"><span class="dot bad"></span>RECHAZADO</span>`;
     if(v.status === Status.LLEGADO) return `<span class="pill"><span class="dot warn"></span>LLEGÓ</span>`;
     if(v.status === Status.DENTRO) return `<span class="pill"><span class="dot ok"></span>DENTRO</span>`;
     return `<span class="pill"><span class="dot muted"></span>FINALIZADO</span>`;
   }
+
   function qrPill(v){
     return v.qrActivo
       ? `<span class="pill"><span class="dot ok"></span>QR Activo</span>`
       : `<span class="pill"><span class="dot bad"></span>QR Inactivo</span>`;
+  }
+
+  function citaChip(v){
+    if(v.status !== Status.PROGRAMADO) return "";
+    const f = v.fechaProgramada || "";
+    const h = v.horaProgramada || "";
+    if(!f && !h) return `<span class="pill"><span class="dot info"></span>Cita programada</span>`;
+    return `<span class="pill"><span class="dot info"></span>Cita: <b style="color:#0f172a">${esc(f)} ${esc(h)}</b></span>`;
+  }
+
+  // ====== FILTRO: Anfitrión solo ve sus visitantes ======
+  function norm(s){
+    return String(s ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+  function getVisibleVisitas(list){
+    if(String(userRole||"").toLowerCase() === ROLES.ANFITRION){
+      const me = norm(userProfile?.nombre || "");
+      return (list||[]).filter(v => norm(v?.personaVisita) === me);
+    }
+    return list || [];
+  }
+
+  // ===== Modales =====
+  function askIncidenciaSalida({ nombre, id }){
+    return new Promise((resolve) => {
+      const back = document.createElement("div");
+      back.className = "modal-backdrop";
+      back.innerHTML = `
+        <div class="modal">
+          <h3>Registrar salida</h3>
+          <p class="muted">Visitante: <b>${esc(nombre || "-")}</b> · ID: <b>${esc(id || "")}</b></p>
+          <label>Incidencias (opcional)</label>
+          <textarea id="incTxt" placeholder="Ej. No devolvió gafete a la primera, se detectó objeto no permitido, se negó a firmar, etc."></textarea>
+          <div style="height:12px"></div>
+          <div class="row" style="justify-content:flex-end;">
+            <button class="secondary" id="btnCancelInc">Cancelar</button>
+            <button class="danger" id="btnOkInc">Confirmar salida</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(back);
+      const close = () => { try{ back.remove(); }catch{} };
+      back.addEventListener("click", (e) => { if(e.target === back){ close(); resolve(null); } });
+      back.querySelector("#btnCancelInc").onclick = () => { close(); resolve(null); };
+      back.querySelector("#btnOkInc").onclick = () => {
+        const val = (back.querySelector("#incTxt").value || "").trim();
+        close();
+        resolve(val);
+      };
+      setTimeout(() => back.querySelector("#incTxt")?.focus(), 0);
+    });
+  }
+
+  function askPin({ title = "Validación requerida", subtitle = "Ingresa tu PIN para continuar" } = {}){
+    return new Promise((resolve) => {
+      const back = document.createElement("div");
+      back.className = "modal-backdrop";
+      back.innerHTML = `
+        <div class="modal">
+          <h3>${esc(title)}</h3>
+          <p class="muted">${esc(subtitle)}</p>
+          <label>PIN</label>
+          <input id="pinTxt" type="password" inputmode="numeric" maxlength="10" placeholder="••••" autocomplete="off" />
+          <div style="height:12px"></div>
+          <div class="row" style="justify-content:flex-end;">
+            <button class="secondary" id="btnCancelPin">Cancelar</button>
+            <button class="ok" id="btnOkPin">Confirmar</button>
+          </div>
+          <div class="muted" style="margin-top:10px;">Se valida contra <b>/users</b> (pinAutorizacion).</div>
+        </div>
+      `;
+      document.body.appendChild(back);
+      const close = () => { try{ back.remove(); }catch{} };
+      back.addEventListener("click", (e) => { if(e.target === back){ close(); resolve(null); } });
+      const pinEl = back.querySelector("#pinTxt");
+      const ok = () => {
+        const val = (pinEl.value || "").trim();
+        close();
+        resolve(val || null);
+      };
+      back.querySelector("#btnCancelPin").onclick = () => { close(); resolve(null); };
+      back.querySelector("#btnOkPin").onclick = ok;
+      pinEl.addEventListener("keydown", (ev) => {
+        if(ev.key === "Enter") ok();
+        if(ev.key === "Escape"){ close(); resolve(null); }
+      });
+      setTimeout(() => pinEl?.focus(), 0);
+    });
+  }
+
+  async function requirePin(actionLabel = "continuar"){
+    const expected = String(userProfile?.pinAutorizacion || "").trim();
+    if(!expected){
+      toast("PIN no configurado", "Tu usuario no tiene pinAutorizacion en /users.", "warn", 4200);
+      return false;
+    }
+    const pin = await askPin({ subtitle: `Ingresa tu PIN para ${actionLabel}.` });
+    if(pin === null) return false;
+    if(String(pin).trim() !== expected){
+      toast("PIN incorrecto", "No autorizado.", "bad", 3200);
+      return false;
+    }
+    return true;
+  }
+
+  function openQrModal({ id, title="QR de visitante", subtitle="" }){
+    return new Promise((resolve) => {
+      const back = document.createElement("div");
+      back.className = "modal-backdrop";
+      back.innerHTML = `
+        <div class="modal">
+          <h3>${esc(title)}</h3>
+          <p class="muted">${esc(subtitle)}<br>ID: <b>${esc(id)}</b></p>
+          <div class="row" style="justify-content:center;">
+            <div id="qrBox" style="padding:10px;background:#fff;border-radius:14px;border:1px solid rgba(15,23,42,.12);"></div>
+          </div>
+          <div style="height:12px"></div>
+          <div class="row" style="justify-content:flex-end;">
+            <button class="secondary" id="btnCerrarQR">Cerrar</button>
+            <button class="secondary" id="btnGuardarQR">Guardar QR</button>
+            <button class="secondary" id="btnCompartirQR">Compartir QR</button>
+          </div>
+          <div class="muted" style="margin-top:10px;">Este QR identifica la visita. Para acceso debe estar en <b>LLEGADO</b>.</div>
+        </div>
+      `;
+      document.body.appendChild(back);
+      const close = () => { try{ back.remove(); }catch{} resolve(); };
+      back.addEventListener("click", (e) => { if(e.target === back) close(); });
+      back.querySelector("#btnCerrarQR").onclick = close;
+
+      const qrBox = back.querySelector("#qrBox");
+      qrBox.innerHTML = "";
+      if(!window.QRCode){
+        toast("QR", "No cargó QRCode.js (revisa el script CDN).", "bad", 4200);
+        return close();
+      }
+      new QRCode(qrBox, { text: id, width: 220, height: 220 });
+
+      const canvas = qrBox.querySelector("canvas");
+      const qrDataUrl = canvas?.toDataURL?.("image/png");
+
+      back.querySelector("#btnGuardarQR").onclick = () => {
+        if(!qrDataUrl) return toast("QR", "No se pudo generar el QR.", "bad", 3000);
+        const a = document.createElement("a");
+        a.href = qrDataUrl;
+        a.download = `QR-${id}.png`;
+        a.click();
+      };
+
+      back.querySelector("#btnCompartirQR").onclick = async () => {
+        if(!qrDataUrl || !navigator.share){
+          toast("Compartir", "Tu dispositivo no soporta compartir. Usa Guardar o captura.", "warn", 3500);
+          return;
+        }
+        try{
+          const blob = await (await fetch(qrDataUrl)).blob();
+          const file = new File([blob], `QR-${id}.png`, { type: "image/png" });
+          await navigator.share({ title: "QR de Visitante", text: `QR para la visita (${id})`, files: [file] });
+        }catch(e){
+          console.error(e);
+          toast("Compartir", "No se pudo compartir el QR.", "bad", 3500);
+        }
+      };
+    });
   }
 
   // ---------- AUTH + ROLE ----------
@@ -445,7 +557,7 @@ function waitChip(esperaMin){
     userPill.style.display = "";
     btnLogout.style.display = "";
     const nombre = userProfile?.nombre || currentUser.email || "sesión";
-    const rol = (userRole || "").toUpperCase();
+    const rol = String(userRole || "").toUpperCase();
     userPill.innerHTML = `<span class="dot ok"></span>${esc(nombre)} · ${esc(rol)}`;
   }
 
@@ -464,31 +576,23 @@ function waitChip(esperaMin){
     appEl.innerHTML = `
       <div class="card" style="max-width:420px;margin:30px auto;">
         <h2 style="margin:0 0 6px;">Iniciar sesión</h2>
-        <div class="muted">Guardia / Admin (Email y contraseña)</div>
-
+        <div class="muted">Guardia / Admin / Anfitrión (Email y contraseña)</div>
         <label>Correo</label>
         <input id="email" type="email" autocomplete="off" />
-
         <label>Contraseña</label>
         <input id="pass" type="password" />
-
         <div style="height:12px"></div>
         <div class="row">
           <button id="btnLogin">Entrar</button>
         </div>
-
         <div style="height:12px"></div>
-        <div class="muted">
-          Cámara: usar <b>https</b> o <b>localhost</b>.
-        </div>
+        <div class="muted">Cámara: usar <b>https</b> o <b>localhost</b>.</div>
       </div>
     `;
-
     $("#btnLogin").onclick = async () => {
       const email = ($("#email").value || "").trim();
       const pass  = ($("#pass").value  || "").trim();
       if(!email || !pass) return toast("Faltan datos","Correo y contraseña.", "warn");
-
       try{
         const { auth, signInWithEmailAndPassword } = window.__FB__;
         await signInWithEmailAndPassword(auth, email, pass);
@@ -500,42 +604,66 @@ function waitChip(esperaMin){
   }
 
   function renderDashboard(){
-    const llegados = visitasHoy
-  .filter(v => v.tipo === "visitante" && v.status === Status.LLEGADO && v.qrActivo)
-  .sort((a,b) => {
-    const wa = calcTimes(a).esperaMin ?? 0;
-    const wb = calcTimes(b).esperaMin ?? 0;
-    return wb - wa; // mayor espera primero
-  });
+    const base = getVisibleVisitas(visitasHoy);
 
-    const dentro   = visitasHoy.filter(v => v.tipo === "visitante" && v.status === Status.DENTRO && v.qrActivo);
-    const fin      = visitasHoy.filter(v => v.tipo === "visitante" && (v.status === Status.FINALIZADO || !v.qrActivo));
+    const programados = base.filter(v => v.tipo==="visitante" && v.status===Status.PROGRAMADO && v.qrActivo)
+      .sort((a,b)=> (a.programadaTs||a.createdTs||0) - (b.programadaTs||b.createdTs||0));
 
-    const adminBtn = (userRole === "admin")
+    const autoriz = base.filter(v => v.tipo==="visitante" && v.status===Status.AUTORIZACION && v.qrActivo)
+      .sort((a,b)=> (a.createdTs||0) - (b.createdTs||0));
+
+    const llegados = base.filter(v => v.tipo==="visitante" && v.status===Status.LLEGADO && v.qrActivo)
+      .sort((a,b)=> (calcTimes(b).esperaMin ?? 0) - (calcTimes(a).esperaMin ?? 0));
+
+    const dentro = base.filter(v => v.tipo==="visitante" && v.status===Status.DENTRO && v.qrActivo);
+
+    const fin = base.filter(v => v.tipo==="visitante" && (v.status===Status.FINALIZADO || v.status===Status.RECHAZADO || !v.qrActivo));
+
+    const rojos = llegados.filter(v => {
+      const w = calcTimes(v).esperaMin;
+      return w != null && w > WAIT_YELLOW_MAX;
+    }).length;
+
+    const btnUsuarios = (userRole === ROLES.ADMIN)
+      ? `<button class="secondary" data-act="usuarios">Usuarios</button>`
+      : ``;
+
+    const btnAlta = (userRole === ROLES.ADMIN)
       ? `<button class="secondary" id="btnAlta">➕ Alta de usuario</button>`
       : ``;
 
+    const btnScan = (userRole === ROLES.ANFITRION)
+      ? ``
+      : `<button class="secondary" id="btnScan">Escanear QR</button>`;
 
-const rojos = llegados.filter(v => {
-  const w = calcTimes(v).esperaMin;
-  return w != null && w > WAIT_YELLOW_MAX;
-}).length;
+    const btnManual = (userRole === ROLES.ANFITRION)
+      ? ``
+      : `<button class="secondary" id="btnManual">Acción manual por ID</button>`;
 
-      appEl.innerHTML = `
-      
+    const btnCita = (userRole === ROLES.ANFITRION)
+      ? ``
+      : `<button class="secondary" id="btnCita">➕ Nueva cita</button>`;
+
+    appEl.innerHTML = `
       <div class="row" style="margin-bottom:12px;">
-        <button class="secondary" id="btnScan">Escanear QR</button>
-        <button class="secondary" id="btnManual">Acción manual por ID</button>
-      <button class="secondary" data-act="visitantes">Visitantes</button>
-        ${adminBtn}
-        <div class="spacer"></div>
-        <span class="pill"><span class="dot warn"></span>Llegaron: <b style="color:#0f172a">${llegados.length}</b></span>
-        <span class="pill"><span class="dot ok"></span>Dentro: <b style="color:#0f172a">${dentro.length}</b></span>
-        <span class="pill"><span class="dot muted"></span>Finalizados: <b style="color:#0f172a">${fin.length}</b></span>
-        <span class="pill"><span class="dot bad"></span>Rojos: <b style="color:#0f172a">${rojos}</b></span>
+        ${btnScan}
+        ${btnCita}
+        <button class="secondary" data-act="visitantes">Visitantes</button>
+        ${btnAlta}
+        ${btnUsuarios}
       </div>
 
-      <div class="three">
+      <div class="five">
+        <div class="card">
+          <div class="colTitle">Programados <span class="pill"><span class="dot info"></span>${programados.length}</span></div>
+          ${programados.length ? programados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+        </div>
+
+        <div class="card">
+          <div class="colTitle">Pend. Autorización <span class="pill"><span class="dot warn"></span>${autoriz.length}</span></div>
+          ${autoriz.length ? autoriz.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+        </div>
+
         <div class="card">
           <div class="colTitle">Llegaron <span class="pill"><span class="dot warn"></span>${llegados.length}</span></div>
           ${llegados.length ? llegados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
@@ -547,16 +675,18 @@ const rojos = llegados.filter(v => {
         </div>
 
         <div class="card">
-          <div class="colTitle">Finalizados / QR Inactivo <span class="pill"><span class="dot muted"></span>${fin.length}</span></div>
+          <div class="colTitle">Finalizados / Rechazados <span class="pill"><span class="dot muted"></span>${fin.length}</span></div>
           ${fin.length ? fin.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
         </div>
       </div>
     `;
 
-    $("#btnScan").onclick = () => goTo(VIEWS.SCAN);
-    $("#btnManual").onclick = () => manualById();
-
-    if(userRole === "admin"){
+    if(userRole !== ROLES.ANFITRION){
+      $("#btnScan") && ($("#btnScan").onclick = () => goTo(VIEWS.SCAN));
+      $("#btnManual") && ($("#btnManual").onclick = () => manualById());
+      $("#btnCita") && ($("#btnCita").onclick = () => goTo(VIEWS.CITA));
+    }
+    if(userRole === ROLES.ADMIN && $("#btnAlta")){
       $("#btnAlta").onclick = () => goTo(VIEWS.ALTA);
     }
   }
@@ -566,32 +696,51 @@ const rojos = llegados.filter(v => {
     const chips = [];
 
     if(v.status === Status.LLEGADO && t.esperaMin !== null){
-    chips.push(waitChip(t.esperaMin));
+      chips.push(waitChip(t.esperaMin));
     }
     if(t.dentroMin !== null) chips.push(`<span class="pill"><span class="dot brand"></span>Dentro: <b style="color:#0f172a">${t.dentroMin} min</b></span>`);
-    if(t.totalMin !== null)  chips.push(`<span class="pill"><span class="dot muted"></span>Total: <b style="color:#0f172a">${t.totalMin} min</b></span>`);
+    if(t.totalMin !== null) chips.push(`<span class="pill"><span class="dot muted"></span>Total: <b style="color:#0f172a">${t.totalMin} min</b></span>`);
     if(v.gafeteNo) chips.push(`<span class="pill"><span class="dot info"></span>Gafete: <b style="color:#0f172a">${esc(v.gafeteNo)}</b></span>`);
+    if(v.incidenciasSalida) chips.push(`<span class="pill"><span class="dot warn"></span>Incidencia</span>`);
+
+    const cc = citaChip(v);
+    if(cc) chips.push(cc);
 
     const acciones = [];
-    if(v.status === Status.LLEGADO && v.qrActivo){
+
+    // PROGRAMADO: ver QR + marcar llegada (no anfitrión)
+    if(v.status === Status.PROGRAMADO && v.qrActivo){
+      acciones.push(`<button class="secondary" data-act="verQR" data-id="${esc(v.id)}">Ver QR</button>`);
+      if(userRole !== ROLES.ANFITRION){
+        acciones.push(`<button class="ok" data-act="marcarLlegada" data-id="${esc(v.id)}">Marcar llegada</button>`);
+      }
+    }
+
+    // AUTORIZACION: solo admin + anfitrión (con PIN en handler)
+    if(v.status === Status.AUTORIZACION && v.qrActivo){
+      if(userRole === ROLES.ADMIN || userRole === ROLES.ANFITRION){
+        acciones.push(`<button class="ok" data-act="autorizar" data-id="${esc(v.id)}">Autorizar</button>`);
+        acciones.push(`<button class="danger" data-act="rechazar" data-id="${esc(v.id)}">Rechazar</button>`);
+      }
+    }
+
+    // LLEGADO/DENTRO: solo guardia o admin
+    if(v.status === Status.LLEGADO && v.qrActivo && userRole !== ROLES.ANFITRION){
       acciones.push(`<button class="ok" data-act="darAcceso" data-id="${esc(v.id)}">Dar acceso</button>`);
     }
-    if(v.status === Status.DENTRO && v.qrActivo){
+    if(v.status === Status.DENTRO && v.qrActivo && userRole !== ROLES.ANFITRION){
       acciones.push(`<button class="danger" data-act="darSalida" data-id="${esc(v.id)}">Dar salida</button>`);
     }
 
-if(v.incidenciasSalida){
-  chips.push(`<span class="pill"><span class="dot warn"></span>Incidencia</span>`);
-}
-
     let ragClass = "";
-if(v.status === Status.LLEGADO){
-  const w = calcTimes(v).esperaMin;
-  const r = waitRag(w); // tu función actual
-  if(r?.dot === "ok") ragClass = "rag-ok";
-  else if(r?.dot === "warn") ragClass = "rag-warn";
-  else if(r?.dot === "bad") ragClass = "rag-bad";
-}
+    if(v.status === Status.LLEGADO){
+      const w = calcTimes(v).esperaMin;
+      const r = waitRag(w);
+      if(r?.dot === "ok") ragClass = "rag-ok";
+      else if(r?.dot === "warn") ragClass = "rag-warn";
+      else if(r?.dot === "bad") ragClass = "rag-bad";
+    }
+
     return `
       <div class="visitCard ${ragClass}">
         <div class="row" style="justify-content:space-between;">
@@ -613,14 +762,15 @@ if(v.status === Status.LLEGADO){
     `;
   }
 
+  // ---------- Alta Usuario (Admin) ----------
   function renderAltaUsuario(){
-    if(userRole !== "admin"){
+    if(userRole !== ROLES.ADMIN){
       toast("Acceso denegado","Solo ADMIN puede dar de alta usuarios.", "bad", 3200);
       return goTo(VIEWS.DASH);
     }
 
     appEl.innerHTML = `
-      <div class="card" style="max-width:520px;margin:20px auto;">
+      <div class="card" style="max-width:560px;margin:20px auto;">
         <div class="row" style="justify-content:space-between;">
           <div>
             <h2 style="margin:0 0 6px;">Alta de Usuario</h2>
@@ -641,22 +791,22 @@ if(v.status === Status.LLEGADO){
         <label>Rol</label>
         <select id="uRol">
           <option value="guardia">Guardia</option>
+          <option value="anfitrion">Anfitrión</option>
           <option value="admin">Administrador</option>
         </select>
 
-        <div style="height:12px"></div>
+        <label>PIN de autorización (para Autorizar/Rechazar)</label>
+        <input id="uPin" type="password" inputmode="numeric" maxlength="10" placeholder="Ej. 1234" autocomplete="off" />
 
+        <div style="height:12px"></div>
         <div class="row">
           <button id="btnCrearUser">Crear usuario</button>
           <button class="secondary" id="btnLimpiarAlta">Limpiar</button>
         </div>
 
         <div id="uMsg" class="muted" style="margin-top:12px;"></div>
-
         <div style="height:12px"></div>
-        <div class="muted">
-          Nota: esta alta crea el usuario en Auth y su doc en <b>/users</b> sin cerrar tu sesión.
-        </div>
+        <div class="muted">Nota: esta alta crea el usuario en Auth y su doc en <b>/users</b> sin cerrar tu sesión.</div>
       </div>
     `;
 
@@ -665,7 +815,8 @@ if(v.status === Status.LLEGADO){
       $("#uNombre").value = "";
       $("#uEmail").value = "";
       $("#uPass").value = "";
-      $("#uRol").value = "guardia";
+      $("#uRol").value = ROLES.GUARDIA;
+      $("#uPin").value = "";
       $("#uMsg").textContent = "";
       $("#uNombre").focus();
     };
@@ -674,22 +825,20 @@ if(v.status === Status.LLEGADO){
 
   async function crearUsuarioDesdeAdmin(){
     const nombre = ($("#uNombre").value || "").trim();
-    const email  = ($("#uEmail").value || "").trim();
-    const pass   = ($("#uPass").value || "").trim();
-    const rol    = ($("#uRol").value || "").trim();
-    const msg    = $("#uMsg");
-
+    const email  = ($("#uEmail").value  || "").trim();
+    const pass   = ($("#uPass").value   || "").trim();
+    const rol    = ($("#uRol").value    || "").trim();
+    const pin    = ($("#uPin").value    || "").trim();
+    const msg = $("#uMsg");
     msg.textContent = "";
 
     if(!nombre || !email || !pass){
-      msg.textContent = "Completa todos los campos.";
+      msg.textContent = "Completa nombre, correo y contraseña.";
       return;
     }
 
     try{
       const { auth2, createUserWithEmailAndPassword, signOut, db, doc, setDoc } = window.__FB__;
-
-      // ✅ crea usuario con auth secundario para no cambiar la sesión del admin
       const cred = await createUserWithEmailAndPassword(auth2, email, pass);
       const uid = cred.user.uid;
 
@@ -699,21 +848,21 @@ if(v.status === Status.LLEGADO){
         email,
         rol,
         activo: true,
-        createdTs: Date.now()
+        createdTs: Date.now(),
+        pinAutorizacion: pin || ""
       });
 
-      // cierra sesión secundaria (no afecta la principal)
       try{ await signOut(auth2); }catch{}
 
-      msg.textContent = "✅ Usuario creado y rol asignado.";
+      msg.textContent = "✅ Usuario creado, rol y PIN guardados.";
       toast("Alta usuario","Usuario creado correctamente.", "ok", 2200);
 
       $("#uNombre").value = "";
       $("#uEmail").value = "";
       $("#uPass").value = "";
-      $("#uRol").value = "guardia";
+      $("#uRol").value = ROLES.GUARDIA;
+      $("#uPin").value = "";
       $("#uNombre").focus();
-
     }catch(e){
       console.error(e);
       msg.textContent = e?.message || "Error al crear usuario.";
@@ -721,15 +870,150 @@ if(v.status === Status.LLEGADO){
     }
   }
 
-  
+  // ---------- Nueva Cita (PROGRAMADO) ----------
+  function renderNuevaCita(){
+    if(userRole === ROLES.ANFITRION){
+      toast("No permitido","El rol Anfitrión no crea citas.", "warn", 2600);
+      return goTo(VIEWS.DASH);
+    }
 
-  // ---------- VISITANTES (Resumen + Tabla) ----------
+    const todayISO = new Date().toISOString().slice(0,10);
+    appEl.innerHTML = `
+      <div class="card" style="max-width:640px;margin:20px auto;">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <h2 style="margin:0 0 6px;">Nueva cita</h2>
+            <div class="muted">Se crea en estatus <b>PROGRAMADO</b> y se genera su QR.</div>
+          </div>
+          <button class="secondary" id="btnBackCita">Volver</button>
+        </div>
+
+        <label>Nombre completo</label>
+        <input id="cNombre" placeholder="Nombre del visitante" />
+
+        <label>Empresa</label>
+        <input id="cEmpresa" placeholder="Empresa" />
+
+        <label>Motivo de la visita</label>
+        <select id="cMotivo">
+          <option value="">Seleccione…</option>
+          <option>Entrega</option>
+          <option>Visita</option>
+          <option>Entrevista</option>
+          <option>Junta</option>
+          <option>Servicio</option>
+          <option>Pago</option>
+          <option>Exámen médico</option>
+          <option>Otro</option>
+        </select>
+
+       <label>Persona a quien visita</label>
+<select id="cPersona">
+  <option value="">Seleccione…</option>
+  <option>Jaqueline Gómez</option>
+  <option>Julia Saralegui</option>
+  <option>Mayela Reynaga</option>
+  <option>Jorge Olvera</option>
+  <option>Yolanda Hurtado</option>
+  <option>Paola Palomares</option>
+</select>
+
+        <div class="two">
+          <div>
+            <label>Fecha</label>
+            <input id="cFecha" type="date" value="${todayISO}" />
+          </div>
+          <div>
+            <label>Hora</label>
+            <input id="cHora" type="time" value="09:00" />
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+        <div class="row">
+          <button id="btnCrearCita">Crear cita</button>
+          <button class="secondary" id="btnLimpiarCita">Limpiar</button>
+        </div>
+
+        <div class="muted" style="margin-top:10px;">Tip: al llegar, usa <b>Marcar llegada</b> para pasar a <b>LLEGADO</b>.</div>
+      </div>
+    `;
+
+    $("#btnBackCita").onclick = () => goTo(VIEWS.DASH);
+    $("#btnLimpiarCita").onclick = () => {
+      $("#cNombre").value = "";
+      $("#cEmpresa").value = "";
+      $("#cMotivo").value = "";
+      $("#cPersona").value = "";
+      $("#cFecha").value = todayISO;
+      $("#cHora").value = "09:00";
+      $("#cNombre").focus();
+    };
+    $("#btnCrearCita").onclick = crearCitaProgramada;
+  }
+
+  async function crearCitaProgramada(){
+    const nombre = ($("#cNombre").value || "").trim();
+    const empresa = ($("#cEmpresa").value || "").trim();
+    const motivo = ($("#cMotivo").value || "").trim();
+    const persona = ($("#cPersona").value || "").trim();
+    const fecha = ($("#cFecha").value || "").trim();
+    const hora = ($("#cHora").value || "").trim();
+
+    if(!nombre || !empresa || !motivo || !persona || !fecha || !hora){
+      toast("Faltan datos","Completa todos los campos.", "warn", 3000);
+      return;
+    }
+
+    const id = "VIS-" + Date.now();
+    const programadaTs = new Date(`${fecha}T${hora}:00`).getTime();
+
+    const data = {
+      id,
+      tipo: "visitante",
+      origen: "app",
+      nombreVisitante: nombre,
+      empresa,
+      motivoVisita: motivo,
+      personaVisita: persona,
+      fechaProgramada: fecha,
+      horaProgramada: hora,
+      programadaTs,
+      status: Status.PROGRAMADO,
+      qrActivo: true,
+      llegadaTs: null,
+      entradaTs: null,
+      salidaTs: null,
+      autorizadoPor: null,
+      autorizadoTs: null,
+      createdTs: Date.now(),
+      updatedTs: Date.now()
+    };
+
+    try{
+      const { db, doc, setDoc } = window.__FB__;
+      await setDoc(doc(db, "visitas", id), data);
+      toast("Cita creada", "Quedó en PROGRAMADO.", "ok", 2400);
+
+      await openQrModal({
+        id,
+        title: "Cita programada · QR generado",
+        subtitle: "Guarda o comparte este QR con el visitante."
+      });
+
+      goTo(VIEWS.DASH);
+    }catch(e){
+      console.error(e);
+      toast("Error", "No se pudo crear la cita (rules/conexión).", "bad", 4200);
+    }
+  }
+
+  // ---------- Visitantes (Tabla) ----------
   async function fetchVisitantesByDay(dateISO){
     const { db, collection, query, where, getDocs, limit } = window.__FB__;
     const start = new Date(dateISO + "T00:00:00").getTime();
-    const end   = new Date(dateISO + "T23:59:59").getTime();
+    const end = new Date(dateISO + "T23:59:59").getTime();
 
-    // Consulta simple para evitar índices compuestos: solo rango por createdTs
     const q = query(
       collection(db, "visitas"),
       where("tipo", "==", "visitante"),
@@ -741,10 +1025,9 @@ if(v.status === Status.LLEGADO){
     const snap = await getDocs(q);
     const arr = [];
     snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
-
-    // Orden local (más reciente arriba)
     arr.sort((a,b) => (b.llegadaTs || b.createdTs || 0) - (a.llegadaTs || a.createdTs || 0));
-    return arr;
+
+    return getVisibleVisitas(arr);
   }
 
   function renderVisitantes(){
@@ -769,13 +1052,16 @@ if(v.status === Status.LLEGADO){
             <input type="date" id="visFecha" value="${todayISO}">
           </div>
 
-          <div style="min-width:200px;">
+          <div style="min-width:220px;">
             <label>Estatus</label>
             <select id="visStatus">
               <option value="">Todos</option>
+              <option value="programado">Programado</option>
+              <option value="autorizacion">Autorización</option>
               <option value="llegado">Llegado</option>
               <option value="dentro">Dentro</option>
               <option value="finalizado">Finalizado</option>
+              <option value="rechazado">Rechazado</option>
             </select>
           </div>
 
@@ -801,10 +1087,9 @@ if(v.status === Status.LLEGADO){
   }
 
   async function loadVisitantes(){
-    const fecha  = document.getElementById('visFecha')?.value;
+    const fecha = document.getElementById('visFecha')?.value;
     const status = (document.getElementById('visStatus')?.value || '').trim();
-    const term   = (document.getElementById('visSearch')?.value || '').trim().toLowerCase();
-
+    const term = (document.getElementById('visSearch')?.value || '').trim().toLowerCase();
     const resEl = document.getElementById('visResumen');
     const tabEl = document.getElementById('visTabla');
     if(!fecha || !resEl || !tabEl) return;
@@ -815,12 +1100,10 @@ if(v.status === Status.LLEGADO){
     try{
       const hoyISO = new Date().toISOString().slice(0,10);
       let list = [];
-
       if(fecha === hoyISO){
-        // Usa cache realtime del día (mismo patrón que tu dashboard)
-        list = (visitasHoy || []).filter(x => x.tipo === 'visitante');
+        list = getVisibleVisitas(visitasHoy).filter(x => x.tipo === 'visitante');
         list.sort((a,b) => (b.llegadaTs || b.createdTs || 0) - (a.llegadaTs || a.createdTs || 0));
-      } else {
+      }else{
         list = await fetchVisitantesByDay(fecha);
       }
 
@@ -836,17 +1119,22 @@ if(v.status === Status.LLEGADO){
         );
       }
 
-      // KPIs
       const total = list.length;
-      const llegados = list.filter(v => v.status === 'llegado').length;
-      const dentro = list.filter(v => v.status === 'dentro').length;
-      const fin = list.filter(v => v.status === 'finalizado').length;
+      const cProg = list.filter(v => v.status === Status.PROGRAMADO).length;
+      const cAut  = list.filter(v => v.status === Status.AUTORIZACION).length;
+      const cLleg = list.filter(v => v.status === Status.LLEGADO).length;
+      const cDen  = list.filter(v => v.status === Status.DENTRO).length;
+      const cFin  = list.filter(v => v.status === Status.FINALIZADO).length;
+      const cRech = list.filter(v => v.status === Status.RECHAZADO).length;
 
       resEl.innerHTML = `
         <span class="pill"><span class="dot brand"></span>Total: <b style="color:#0f172a; margin-left:6px;">${total}</b></span>
-        <span class="pill"><span class="dot warn"></span>Llegados: <b style="color:#0f172a; margin-left:6px;">${llegados}</b></span>
-        <span class="pill"><span class="dot ok"></span>Dentro: <b style="color:#0f172a; margin-left:6px;">${dentro}</b></span>
-        <span class="pill"><span class="dot muted"></span>Finalizados: <b style="color:#0f172a; margin-left:6px;">${fin}</b></span>
+        <span class="pill"><span class="dot info"></span>Programados: <b style="color:#0f172a; margin-left:6px;">${cProg}</b></span>
+        <span class="pill"><span class="dot warn"></span>Autorización: <b style="color:#0f172a; margin-left:6px;">${cAut}</b></span>
+        <span class="pill"><span class="dot warn"></span>Llegados: <b style="color:#0f172a; margin-left:6px;">${cLleg}</b></span>
+        <span class="pill"><span class="dot ok"></span>Dentro: <b style="color:#0f172a; margin-left:6px;">${cDen}</b></span>
+        <span class="pill"><span class="dot muted"></span>Finalizados: <b style="color:#0f172a; margin-left:6px;">${cFin}</b></span>
+        <span class="pill"><span class="dot bad"></span>Rechazados: <b style="color:#0f172a; margin-left:6px;">${cRech}</b></span>
       `;
 
       if(!list.length){
@@ -855,10 +1143,13 @@ if(v.status === Status.LLEGADO){
       }
 
       const badge = (s) => {
-        if(s === 'llegado') return `<span class="pill"><span class="dot warn"></span>LLEGADO</span>`;
-        if(s === 'dentro') return `<span class="pill"><span class="dot ok"></span>DENTRO</span>`;
-        if(s === 'finalizado') return `<span class="pill"><span class="dot muted"></span>FINALIZADO</span>`;
-        return `<span class="pill">${esc(s || '-') }</span>`;
+        if(s === Status.PROGRAMADO) return `<span class="pill"><span class="dot info"></span>PROGRAMADO</span>`;
+        if(s === Status.AUTORIZACION) return `<span class="pill"><span class="dot warn"></span>AUTORIZACIÓN</span>`;
+        if(s === Status.LLEGADO) return `<span class="pill"><span class="dot warn"></span>LLEGADO</span>`;
+        if(s === Status.DENTRO) return `<span class="pill"><span class="dot ok"></span>DENTRO</span>`;
+        if(s === Status.FINALIZADO) return `<span class="pill"><span class="dot muted"></span>FINALIZADO</span>`;
+        if(s === Status.RECHAZADO) return `<span class="pill"><span class="dot bad"></span>RECHAZADO</span>`;
+        return `<span class="pill">${esc(s || '-')}</span>`;
       };
 
       tabEl.innerHTML = `
@@ -875,14 +1166,14 @@ if(v.status === Status.LLEGADO){
           </thead>
           <tbody>
             ${list.map(v => {
-              const hora = v.llegadaTs ? new Date(v.llegadaTs).toLocaleTimeString() : '-';
+              const hora = v.llegadaTs ? new Date(v.llegadaTs).toLocaleTimeString() : (v.horaProgramada || '-');
               return `
                 <tr>
                   <td>${esc(hora)}</td>
-                  <td><b>${esc(v.nombreVisitante || '-') }</b><br><code>${esc(v.id)}</code></td>
-                  <td>${esc(v.empresa || '-') }</td>
-                  <td>${esc(v.motivoVisita || '-') }</td>
-                  <td>${esc(v.personaVisita || '-') }</td>
+                  <td><b>${esc(v.nombreVisitante || '-')}</b><br><code>${esc(v.id)}</code></td>
+                  <td>${esc(v.empresa || '-')}</td>
+                  <td>${esc(v.motivoVisita || '-')}</td>
+                  <td>${esc(v.personaVisita || '-')}</td>
                   <td>${badge(v.status || '-') }</td>
                 </tr>
               `;
@@ -891,14 +1182,83 @@ if(v.status === Status.LLEGADO){
         </table>
       `;
 
-    } catch(e){
+    }catch(e){
       console.error(e);
       resEl.innerHTML = `<span class="pill"><span class="dot bad"></span>Error</span>`;
       tabEl.innerHTML = `<div class="muted">Error cargando visitantes (Rules/Internet).</div>`;
       toast('Visitantes','No se pudo cargar. Revisa conexión y Rules.','bad',4200);
     }
   }
-function renderScanner(){
+
+  // ---------- Usuarios (solo Admin) ----------
+  function renderUsuarios(){
+    if(userRole !== ROLES.ADMIN){
+      toast("Acceso denegado", "Solo ADMIN puede ver usuarios.", "bad", 3200);
+      return goTo(VIEWS.DASH);
+    }
+
+    appEl.innerHTML = `
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <h2 style="margin:0 0 4px;">Usuarios</h2>
+            <div class="muted">Listado de usuarios del sistema</div>
+          </div>
+          <button class="secondary" data-act="volverUsuarios">Volver</button>
+        </div>
+        <div class="divider"></div>
+        <div id="usersTable" class="muted">Cargando usuarios…</div>
+      </div>
+    `;
+
+    loadUsuarios();
+  }
+
+  async function loadUsuarios(){
+    const { db, collection, getDocs } = window.__FB__;
+    const cont = document.getElementById("usersTable");
+    try{
+      const snap = await getDocs(collection(db, "users"));
+      const rows = [];
+      snap.forEach(d => {
+        const u = d.data() || {};
+        rows.push(`
+          <tr>
+            <td><b>${esc(u.nombre || '-') }</b></td>
+            <td>${esc(u.email || '-') }</td>
+            <td>${esc(String(u.rol || '-').toUpperCase())}</td>
+            <td>${u.pinAutorizacion ? '●●●●' : '-'}</td>
+            <td>${u.activo === false ? 'No' : 'Sí'}</td>
+          </tr>
+        `);
+      });
+      cont.innerHTML = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>PIN</th>
+              <th>Activo</th>
+            </tr>
+          </thead>
+          <tbody>${rows.join('')}</tbody>
+        </table>
+      `;
+    }catch(e){
+      console.error(e);
+      cont.innerHTML = `<div class="muted">No se pudieron cargar los usuarios.</div>`;
+    }
+  }
+
+  // ---------- Scanner ----------
+  function renderScanner(){
+    if(userRole === ROLES.ANFITRION){
+      toast("No permitido","El rol Anfitrión no usa escáner.", "warn", 2600);
+      return goTo(VIEWS.DASH);
+    }
+
     appEl.innerHTML = `
       <div class="card" style="max-width:900px;margin:0 auto;">
         <div class="row" style="justify-content:space-between;">
@@ -908,10 +1268,8 @@ function renderScanner(){
           </div>
           <button class="secondary" id="btnBackScan">Volver</button>
         </div>
-
         <div style="height:12px"></div>
         <div id="reader"></div>
-
         <div style="height:12px"></div>
         <div class="muted">Si la cámara no abre: usar <b>https</b> o <b>localhost</b>.</div>
       </div>
@@ -926,7 +1284,6 @@ function renderScanner(){
 
     stopScanner();
 
-    // Config típico recomendado por la librería (fps + qrbox + cámara trasera) [3](https://github.com/IDGS-903-21000468/Examen2doAWP)
     const config = {
       fps: 10,
       qrbox: { width: 250, height: 250 },
@@ -962,7 +1319,6 @@ function renderScanner(){
 
     const { db, doc, getDoc } = window.__FB__;
     let snap;
-
     try{
       snap = await getDoc(doc(db, "visitas", id));
     }catch(e){
@@ -984,7 +1340,21 @@ function renderScanner(){
     }
 
     if(!v.qrActivo){
-      toast("QR inactivo","Ya fue desactivado al finalizar.", "warn", 3200);
+      toast("QR inactivo","Ya fue desactivado al finalizar/rechazar.", "warn", 3200);
+      return goTo(VIEWS.DASH);
+    }
+
+    // Bloqueos por estatus
+    if(v.status === Status.PROGRAMADO){
+      toast("Cita programada","Primero marca llegada (PROGRAMADO → LLEGADO).", "warn", 3600);
+      return goTo(VIEWS.DASH);
+    }
+    if(v.status === Status.AUTORIZACION){
+      toast("Pendiente","Aún no está autorizada.", "warn", 3200);
+      return goTo(VIEWS.DASH);
+    }
+    if(v.status === Status.RECHAZADO){
+      toast("Rechazado","Esta visita fue rechazada.", "bad", 3200);
       return goTo(VIEWS.DASH);
     }
 
@@ -996,12 +1366,11 @@ function renderScanner(){
     }
 
     if(v.status === Status.DENTRO){
-  const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id: v.id });
-  if(inc === null) return goTo(VIEWS.DASH); // canceló
-
-  await darSalida(v.id, inc);
-  return;
-}
+      const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id: v.id });
+      if(inc === null) return goTo(VIEWS.DASH);
+      await darSalida(v.id, inc);
+      return;
+    }
 
     toast("Sin acción","Este registro ya está finalizado.", "info", 2400);
     return goTo(VIEWS.DASH);
@@ -1013,10 +1382,9 @@ function renderScanner(){
       await updateDoc(doc(db, "visitas", id), {
         status: Status.DENTRO,
         entradaTs: Date.now(),
-        gafeteNo: gafeteNo,
+        gafeteNo,
         updatedTs: Date.now()
       });
-
       toast("Acceso otorgado","Visitante dentro.", "ok", 2200);
       goTo(VIEWS.DASH);
     }catch(e){
@@ -1026,91 +1394,145 @@ function renderScanner(){
     }
   }
 
- async function darSalida(id, incidenciasTexto){
-  const { db, doc, updateDoc } = window.__FB__;
-  try{
-    await updateDoc(doc(db, "visitas", id), {
-      status: Status.FINALIZADO,
-      salidaTs: Date.now(),
-      qrActivo: false,
-      gafeteNo: null,
-      updatedTs: Date.now(),
-
-      // ✅ NUEVO
-      incidenciasSalida: (incidenciasTexto || "").trim(),
-      salidaPor: userProfile?.nombre || currentUser?.email || "",
-      salidaPorUid: currentUser?.uid || ""
-    });
-
-    toast(
-      "Salida registrada",
-      (incidenciasTexto && incidenciasTexto.trim())
-        ? "Finalizado con incidencias."
-        : "Finalizado (sin incidencias).",
-      "ok",
-      2400
-    );
-    goTo(VIEWS.DASH);
-  }catch(e){
-    console.error(e);
-    toast("Error","No se pudo registrar salida.", "bad", 4200);
-    goTo(VIEWS.DASH);
+  async function darSalida(id, incidenciasTexto){
+    const { db, doc, updateDoc } = window.__FB__;
+    try{
+      await updateDoc(doc(db, "visitas", id), {
+        status: Status.FINALIZADO,
+        salidaTs: Date.now(),
+        qrActivo: false,
+        gafeteNo: null,
+        updatedTs: Date.now(),
+        incidenciasSalida: (incidenciasTexto || "").trim(),
+        salidaPor: userProfile?.nombre || currentUser?.email || "",
+        salidaPorUid: currentUser?.uid || ""
+      });
+      toast("Salida registrada", incidenciasTexto ? "Finalizado con incidencias." : "Finalizado (sin incidencias).", "ok", 2400);
+      goTo(VIEWS.DASH);
+    }catch(e){
+      console.error(e);
+      toast("Error","No se pudo registrar salida.", "bad", 4200);
+      goTo(VIEWS.DASH);
+    }
   }
-}
 
-  // Click actions en tarjetas
+  // ---------- Acciones adicionales ----------
+  async function marcarLlegada(id){
+    const { db, doc, updateDoc } = window.__FB__;
+    try{
+      await updateDoc(doc(db, "visitas", id), {
+        status: Status.LLEGADO,
+        llegadaTs: Date.now(),
+        updatedTs: Date.now()
+      });
+      toast("Llegada registrada","Ahora está en LLEGADO.", "ok", 2200);
+      goTo(VIEWS.DASH);
+    }catch(e){
+      console.error(e);
+      toast("Error","No se pudo marcar llegada.", "bad", 4200);
+      goTo(VIEWS.DASH);
+    }
+  }
+
+  async function autorizarVisita(id){
+    const { db, doc, updateDoc } = window.__FB__;
+    try{
+      await updateDoc(doc(db, "visitas", id), {
+        status: Status.LLEGADO,
+        llegadaTs: Date.now(),
+        autorizadoTs: Date.now(),
+        autorizadoPor: userProfile?.nombre || currentUser?.email || "",
+        updatedTs: Date.now()
+      });
+      toast("Autorizado","Pasó a LLEGADO.", "ok", 2200);
+      goTo(VIEWS.DASH);
+    }catch(e){
+      console.error(e);
+      toast("Error","No se pudo autorizar.", "bad", 4200);
+      goTo(VIEWS.DASH);
+    }
+  }
+
+  async function rechazarVisita(id){
+    const { db, doc, updateDoc } = window.__FB__;
+    try{
+      await updateDoc(doc(db, "visitas", id), {
+        status: Status.RECHAZADO,
+        qrActivo: false,
+        autorizadoTs: Date.now(),
+        autorizadoPor: userProfile?.nombre || currentUser?.email || "",
+        updatedTs: Date.now()
+      });
+      toast("Rechazado","Se desactivó el QR.", "ok", 2400);
+      goTo(VIEWS.DASH);
+    }catch(e){
+      console.error(e);
+      toast("Error","No se pudo rechazar.", "bad", 4200);
+      goTo(VIEWS.DASH);
+    }
+  }
+
+  // Click actions
   document.addEventListener("click", async (e) => {
-  const btn = e.target.closest("[data-act]");
-  if(!btn) return;
+    const btn = e.target.closest("[data-act]");
+    if(!btn) return;
 
-  const act = btn.dataset.act;
-  const id  = btn.dataset.id;
+    const act = btn.dataset.act;
+    const id  = btn.dataset.id;
 
-  // ✅ VISITANTES
-  if(act === "visitantes"){
-    console.log("➡️ goTo VIS");
-    goTo(VIEWS.VIS);
-    return;
-  }
+    if(act === "visitantes") return goTo(VIEWS.VIS);
+    if(act === "usuarios") return goTo(VIEWS.USERS);
+    if(act === "volverUsuarios") return goTo(VIEWS.DASH);
+    if(act === "loadVisitantes") return await loadVisitantes();
+    if(act === "volverVisitantes") return goTo(VIEWS.DASH);
 
-  if(act === "loadVisitantes"){
-    console.log("➡️ loadVisitantes");
-    await loadVisitantes();
-    return;
-  }
+    if(act === "verQR"){
+      await openQrModal({ id, title: "QR de la visita", subtitle: "Guarda o comparte este QR." });
+      return;
+    }
 
-  if(act === "volverVisitantes"){
-    console.log("➡️ goTo DASH");
-    goTo(VIEWS.DASH);
-    return;
-  }
+    if(act === "marcarLlegada"){
+      await marcarLlegada(id);
+      return;
+    }
 
-  // ✅ EXISTENTE
-  if(act === "darAcceso"){
-    const gafete = prompt("No. de gafete:");
-    if(!gafete) return;
-    await darAcceso(id, String(gafete).trim());
-    return;
-  }
+    if(act === "autorizar"){
+      const ok = await requirePin("autorizar la visita");
+      if(!ok) return;
+      await autorizarVisita(id);
+      return;
+    }
 
-  if(act === "darSalida"){
-    const v = visitasHoy.find(x => x.id === id) || {};
-    const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id });
-    if(inc === null) return;
-    await darSalida(id, inc);
-    return;
-  }
-});
+    if(act === "rechazar"){
+      if(!confirm("¿Rechazar esta visita? Se desactivará el QR.")) return;
+      const ok = await requirePin("rechazar la visita");
+      if(!ok) return;
+      await rechazarVisita(id);
+      return;
+    }
 
+    if(act === "darAcceso"){
+      const gafete = prompt("No. de gafete:");
+      if(!gafete) return;
+      await darAcceso(id, String(gafete).trim());
+      return;
+    }
+
+    if(act === "darSalida"){
+      const v = getVisibleVisitas(visitasHoy).find(x => x.id === id) || {};
+      const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id });
+      if(inc === null) return;
+      await darSalida(id, inc);
+      return;
+    }
+  });
 
   // ---------- REALTIME HOY ----------
   function startListenerHoy(){
     stopListenerHoy();
-
     const { db, collection, query, where, orderBy, limit, onSnapshot } = window.__FB__;
     const { start, end } = dayBounds(new Date());
 
-    // Consulta con rango y orden (patrón estándar de orderBy/limit) 78888543/minimal-pwa-requirements-what-is-the-least-needed-to-turn-a-web-page-into-an-i)
     const q = query(
       collection(db, "visitas"),
       where("createdTs", ">=", start),
@@ -1123,10 +1545,9 @@ function renderScanner(){
       const arr = [];
       snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
       visitasHoy = arr.filter(x => x.tipo === "visitante");
+
       if(view === VIEWS.DASH) renderDashboard();
-      else if(view === VIEWS.SCAN) {} // no re-render mientras escaneas
-      else if(view === VIEWS.ALTA) {} // no re-render mientras das de alta
-      else renderDashboard();
+      // En otras vistas no re-render para no molestar
     }, (err) => {
       console.error(err);
       toast("Realtime","No se pudo escuchar cambios (rules/conexión).", "bad", 4200);
@@ -1145,10 +1566,8 @@ function renderScanner(){
   const waitFB = setInterval(() => {
     if(window.__FB__?.onAuthStateChanged){
       clearInterval(waitFB);
-
       const { auth, onAuthStateChanged, signOut } = window.__FB__;
 
-      // Observador recomendado por Firebase para estado de sesión [2](https://teams.microsoft.com/l/meeting/details?eventId=AAMkADIyNDIyYzUxLWJhMjQtNDlkOC1hNjM1LTFkN2FjMGI5YjQyMgBGAAAAAABAnySmJuAESZYA5dIFFVh6BwBV99l9WrgXQaFnnYXfL3mnAAAAAAENAABV99l9WrgXQaFnnYXfL3mnAAQqmfTHAAA%3d)
       onAuthStateChanged(auth, async (user) => {
         currentUser = user || null;
 
@@ -1163,13 +1582,11 @@ function renderScanner(){
 
         try{
           userProfile = await loadUserProfile(currentUser.uid);
-
           if(!userProfile){
             toast("Acceso bloqueado","Tu cuenta no tiene rol asignado en /users.", "bad", 5200);
             await signOut(auth);
             return;
           }
-
           if(userProfile.activo === false){
             toast("Acceso bloqueado","Tu cuenta está desactivada.", "bad", 5200);
             await signOut(auth);
@@ -1177,7 +1594,7 @@ function renderScanner(){
           }
 
           userRole = String(userProfile.rol || "").toLowerCase();
-          if(userRole !== "admin" && userRole !== "guardia"){
+          if(userRole !== ROLES.ADMIN && userRole !== ROLES.GUARDIA && userRole !== ROLES.ANFITRION){
             toast("Acceso bloqueado","Rol inválido en /users.", "bad", 5200);
             await signOut(auth);
             return;
@@ -1185,7 +1602,6 @@ function renderScanner(){
 
           paintUser();
           toast("Sesión activa", "Bienvenido(a).", "ok", 1600);
-
           startListenerHoy();
           return goTo(VIEWS.DASH);
 
@@ -1200,6 +1616,7 @@ function renderScanner(){
 
 })();
 </script>
+
 <script>
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   window.addEventListener("load", () => {
