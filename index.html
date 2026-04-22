@@ -22,10 +22,24 @@
       color:#0f172a;
     }
     header{
-      background:#fff;
-      border-bottom:1px solid #e5e7eb;
-      position:sticky; top:0; z-index:10;
-    }
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
+  backdrop-filter: blur(8px);
+  border-bottom:1px solid rgba(15,23,42,.10);
+
+  /* 🔑 CLAVE */
+  margin-left: var(--sbw);
+}
+
+/* Mobile: header vuelve a 0 */
+@media (max-width: 980px){
+  header{
+    margin-left: 0;
+  }
+}
     .container{ max-width:1100px; margin:0 auto; padding:16px; }
     .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .spacer{ flex:1; }
@@ -178,7 +192,115 @@
       font-size:14px;
       background:#fff;
     }
-  </style>
+  
+
+/* =========================
+   UI estilo Control de Accesos (LIGHT)
+   Sidebar + Topbar (sin cambiar tu paleta clara)
+   ========================= */
+:root{ --sbw: 260px; --sb-shadow: 0 20px 50px rgba(2,6,23,.10); }
+.app-shell{ display:flex; min-height:100vh; }
+.sidebar{
+  position:fixed; inset:0 auto 0 0; z-index:30;
+  width:var(--sbw);
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,255,.96));
+  border-right:1px solid rgba(15,23,42,.10);
+  box-shadow: var(--sb-shadow);
+  padding:12px 10px;
+  transform: translateX(0);
+  transition: transform .22s ease;
+  display:flex; flex-direction:column; gap:10px;
+}
+.sidebar .sb-brand{ display:flex; align-items:center; gap:10px; padding:10px 10px 8px; }
+.sidebar .sb-logo{
+  width:38px; height:38px; border-radius:12px;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  box-shadow:0 12px 26px rgba(37,99,235,.18);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; letter-spacing:.5px; color:#fff;
+}
+.sidebar .sb-title{ line-height:1.1; }
+.sidebar .sb-title b{ display:block; font-size:13px; }
+.sidebar .sb-title span{ display:block; font-size:11px; color:#64748b; margin-top:2px; }
+.sidebar .sb-section{ margin-top:6px; }
+.sidebar .sb-section h4{
+  margin:10px 10px 6px; font-size:11px; color:rgba(71,85,105,.95);
+  letter-spacing:.25px; text-transform:uppercase;
+}
+.sb-nav{ display:flex; flex-direction:column; gap:6px; padding:0 6px; }
+.sb-btn{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid transparent;
+  background: rgba(2,6,23,.03);
+  color:#0f172a;
+  cursor:pointer;
+  user-select:none;
+  transition: background .15s ease, border-color .15s ease, transform .06s ease;
+}
+.sb-btn:hover{ background: rgba(37,99,235,.08); border-color: rgba(37,99,235,.22); }
+.sb-btn:active{ transform: translateY(1px); }
+.sb-btn[aria-current="page"]{ background: rgba(37,99,235,.12); border-color: rgba(37,99,235,.28); }
+.sb-ic{ width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; }
+.sb-ic svg{ width:20px; height:20px; fill:none; stroke: currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.sb-txt{ flex:1; font-weight:800; font-size:13px; }
+.sb-chip{
+  font-size:11px; color:#475569;
+  border:1px solid rgba(15,23,42,.10);
+  padding:3px 8px; border-radius:999px;
+  background: rgba(255,255,255,.70);
+}
+.main-wrap{ margin-left: var(--sbw); width:100%; }
+.hamb{
+  display:none;
+  border:1px solid rgba(15,23,42,.12);
+  background: rgba(255,255,255,.70);
+  color:#0f172a;
+  border-radius:12px;
+  padding:10px 10px;
+  box-shadow:none;
+}
+.hamb:hover{ background: rgba(37,99,235,.08); border-color: rgba(37,99,235,.22); }
+.hamb svg{ width:20px; height:20px; stroke: currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.sb-overlay{
+  position:fixed; inset:0; background: rgba(2,6,23,.35);
+  z-index:25; opacity:0; pointer-events:none; transition: opacity .18s ease;
+}
+.sb-overlay.show{ opacity:1; pointer-events:auto; }
+@media (max-width: 980px){
+  .hamb{ display:inline-flex; align-items:center; justify-content:center; }
+  .sidebar{ transform: translateX(-102%); }
+  .sidebar.open{ transform: translateX(0); }
+  .main-wrap{ margin-left: 0; }
+}
+@media (max-width: 420px){ .sidebar{ width: min(86vw, 320px); } }
+
+/* Topbar estilo Control (claro) */
+header{
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
+  backdrop-filter: blur(8px);
+  border-bottom:1px solid rgba(15,23,42,.10);
+}
+.topbar{ max-width:1100px; margin:0 auto; padding:14px 16px 10px;
+  display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+.title{ display:flex; gap:10px; align-items:center; min-width:240px; }
+.logo{
+  width:36px; height:36px; border-radius:10px;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  box-shadow:0 10px 22px rgba(37,99,235,.18);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; letter-spacing:.5px; color:#fff;
+}
+.title h1{ font-size:16px; margin:0; line-height:1.1; }
+.title small{ display:block; color:#64748b; font-size:12px; margin-top:2px; }
+.actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+/* 🔒 Ocultar logout SOLO en el header (botón técnico) */
+header #btnLogout{
+  display: none !important;
+}
+
+</style>
 
   <!-- ========= FIREBASE (CDN modular) ========= -->
   <script type="module">
@@ -235,18 +357,96 @@
 </head>
 
 <body>
+<div class="sb-overlay" id="sbOverlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">V</div>
+    <div class="sb-title">
+      <b>Visitantes</b>
+      <span>Dashboard • QR • Citas • Administración</span>
+    </div>
+  </div>
+
+  <div class="sb-section">
+    <h4>Navegación</h4>
+    <div class="sb-nav">
+      <div class="sb-btn" data-sb="dash" aria-current="page">
+        <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M9 22V12h6v10"/></svg></span>
+        <span class="sb-txt">Dashboard</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-section">
+    <h4>Anfitrión</h4>
+    <div class="sb-nav">
+      
+      <div class="sb-btn" data-sb="cita">
+        <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
+        <span class="sb-txt">Nueva cita</span>
+      </div>
+
+      <div class="sb-btn" data-sb="visitantes">
+        <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h14"/><path d="M3 12h14"/><path d="M3 19h14"/><path d="M19 5v14"/><path d="M19 12h2"/></svg></span>
+        <span class="sb-txt">Visitantes (tabla)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-section" id="sbAdminSection" style="display:none;">
+    <h4>Administración</h4>
+    <div class="sb-nav">
+      <div class="sb-btn" data-sb="alta">
+        <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M4 21a8 8 0 0 1 16 0"/><path d="M19 8h2"/><path d="M20 7v2"/></svg></span>
+        <span class="sb-txt">Alta de usuario</span>
+      </div>
+      <div class="sb-btn" data-sb="usuarios">
+        <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 8a4 4 0 1 0 0-8"/><path d="M17 8a4 4 0 1 0 0-8"/><path d="M2 22a7 7 0 0 1 10-6"/><path d="M14 16a7 7 0 0 1 8 6"/></svg></span>
+        <span class="sb-txt">Usuarios</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:auto; padding:0 6px 6px;">
+    <div class="sb-btn" data-sb="logout" style="background: rgba(220,38,38,.08); border-color: rgba(220,38,38,.18);">
+      <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 3v18"/></svg></span>
+      <span class="sb-txt">Cerrar sesión</span>
+    </div>
+  </div>
+</aside>
+
 <header>
-  <div class="container row">
-    <div class="pill"><span class="dot brand"></span><b style="color:#0f172a">Visitantes</b> · Control de Accesos</div>
-    <div class="spacer"></div>
-    <div id="userPill" class="pill" style="display:none;"></div>
-    <button id="btnLogout" class="secondary" style="display:none;">Cerrar sesión</button>
+  <div class="topbar">
+    <div class="title">
+      <div class="logo">V</div>
+      <div>
+        <h1>Guardia · Visitantes</h1>
+        <small>Control de accesos • QR • Realtime</small>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="hamb" id="btnHamb" title="Menú">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <span class="pill" title="Estado de conexión">
+        <span class="dot info" id="netDot"></span>
+        <span id="netText">En línea</span>
+      </span>
+      <div id="userPill" class="pill" style="display:none;"></div>
+      
+      <button id="btnLogout" class="secondary" style="display:none;">Cerrar sesión</button>
+    </div>
   </div>
 </header>
 
-<main class="container">
+<div class="app-shell">
+  <div class="main-wrap">
+    <main class="container">
   <div id="app"></div>
 </main>
+  </div>
+</div>
 <div class="toast-wrap" id="toasts"></div>
 
 <script>
@@ -257,6 +457,72 @@
   const toasts = document.getElementById("toasts");
   const userPill = document.getElementById("userPill");
   const btnLogout = document.getElementById("btnLogout");
+
+ const sidebarEl = document.getElementById("sidebar");
+ const sbOverlay = document.getElementById("sbOverlay");
+ const btnHamb = document.getElementById("btnHamb");
+ const netDot = document.getElementById("netDot");
+ const netText = document.getElementById("netText");
+
+ function updateNet(){
+   const on = navigator.onLine;
+   if(netDot) netDot.className = "dot " + (on ? "ok" : "bad");
+   if(netText) netText.textContent = on ? "En línea" : "Sin conexión";
+ }
+
+ function sbOpen(){
+   if(!sidebarEl) return;
+   sidebarEl.classList.add('open');
+   if(sbOverlay) sbOverlay.classList.add('show');
+ }
+ function sbClose(){
+   if(!sidebarEl) return;
+   sidebarEl.classList.remove('open');
+   if(sbOverlay) sbOverlay.classList.remove('show');
+ }
+ function sbToggle(){
+   if(!sidebarEl) return;
+   sidebarEl.classList.contains('open') ? sbClose() : sbOpen();
+ }
+ function setActiveSb(key){
+   document.querySelectorAll('[data-sb]').forEach(el=>{
+     if(el.dataset.sb === key) el.setAttribute('aria-current','page');
+     else el.removeAttribute('aria-current');
+   });
+ }
+
+ // Sidebar click routing
+ document.addEventListener('click', (e)=>{
+   const sb = e.target.closest('[data-sb]');
+   if(!sb) return;
+   const key = sb.dataset.sb;
+   if(key === 'logout'){
+     btnLogout?.click();
+     sbClose();
+     return;
+   }
+   // Seguridad por rol
+   if(String(userRole||'').toLowerCase() === ROLES.ANFITRION){
+     // Anfitrión: solo dashboard y (si aplica) autorización en tarjetas; sin escáner/alta/usuarios/nueva cita
+     if(['scan','cita','alta','usuarios'].includes(key)){
+       toast('Acceso denegado','Tu rol no permite esa sección.', 'bad', 2800);
+       return;
+     }
+   }
+   if(key === 'dash'){ setActiveSb('dash'); sbClose(); goTo(VIEWS.DASH); return; }
+   if(key === 'scan'){ setActiveSb('scan'); sbClose(); goTo(VIEWS.SCAN); return; }
+   if(key === 'cita'){ setActiveSb('cita'); sbClose(); goTo(VIEWS.CITA); return; }
+   if(key === 'visitantes'){ setActiveSb('visitantes'); sbClose(); goTo(VIEWS.VIS); return; }
+   if(key === 'alta'){ setActiveSb('alta'); sbClose(); goTo(VIEWS.ALTA); return; }
+   if(key === 'usuarios'){ setActiveSb('usuarios'); sbClose(); goTo(VIEWS.USERS); return; }
+ });
+
+ if(btnHamb){ btnHamb.addEventListener('click', (e)=>{ e.preventDefault(); sbToggle(); }); }
+ if(sbOverlay){ sbOverlay.addEventListener('click', sbClose); }
+ window.addEventListener('online', updateNet);
+ window.addEventListener('offline', updateNet);
+ updateNet();
+
 
   const ROLES = { ADMIN:"admin", GUARDIA:"guardia", ANFITRION:"anfitrion" };
 
@@ -549,6 +815,7 @@
   }
 
   function paintUser(){
+  const adminSec = document.getElementById("sbAdminSection");
     if(!currentUser){
       userPill.style.display = "none";
       btnLogout.style.display = "none";
@@ -558,7 +825,8 @@
     btnLogout.style.display = "";
     const nombre = userProfile?.nombre || currentUser.email || "sesión";
     const rol = String(userRole || "").toUpperCase();
-    userPill.innerHTML = `<span class="dot ok"></span>${esc(nombre)} · ${esc(rol)}`;
+      if(adminSec){ adminSec.style.display = (String(userRole||"").toLowerCase() === ROLES.ADMIN) ? "" : "none"; }
+  userPill.innerHTML = `<span class="dot ok"></span>${esc(nombre)} · ${esc(rol)}`;
   }
 
   btnLogout.onclick = async () => {
@@ -603,93 +871,135 @@
     };
   }
 
-  function renderDashboard(){
-    const base = getVisibleVisitas(visitasHoy);
+ function renderDashboard(){
+  // ✅ Fecha de vista (Dashboard)
+  const fechaLabel = new Date().toLocaleDateString('es-MX');
 
-    const programados = base.filter(v => v.tipo==="visitante" && v.status===Status.PROGRAMADO && v.qrActivo)
-      .sort((a,b)=> (a.programadaTs||a.createdTs||0) - (b.programadaTs||b.createdTs||0));
+  // Base filtrada por rol (anfitrión solo ve las suyas)
+  const base = getVisibleVisitas(visitasHoy);
 
-    const autoriz = base.filter(v => v.tipo==="visitante" && v.status===Status.AUTORIZACION && v.qrActivo)
-      .sort((a,b)=> (a.createdTs||0) - (b.createdTs||0));
+  // Listas por estatus
+  const programados = base
+    .filter(v => v.tipo === "visitante" && v.status === Status.PROGRAMADO && v.qrActivo)
+    .sort((a,b)=> (a.programadaTs || a.createdTs || 0) - (b.programadaTs || b.createdTs || 0));
 
-    const llegados = base.filter(v => v.tipo==="visitante" && v.status===Status.LLEGADO && v.qrActivo)
-      .sort((a,b)=> (calcTimes(b).esperaMin ?? 0) - (calcTimes(a).esperaMin ?? 0));
+  const autoriz = base
+    .filter(v => v.tipo === "visitante" && v.status === Status.AUTORIZACION && v.qrActivo)
+    .sort((a,b)=> (a.createdTs || 0) - (b.createdTs || 0));
 
-    const dentro = base.filter(v => v.tipo==="visitante" && v.status===Status.DENTRO && v.qrActivo);
+  const llegados = base
+    .filter(v => v.tipo === "visitante" && v.status === Status.LLEGADO && v.qrActivo)
+    .sort((a,b)=> (calcTimes(b).esperaMin || 0) - (calcTimes(a).esperaMin || 0));
 
-    const fin = base.filter(v => v.tipo==="visitante" && (v.status===Status.FINALIZADO || v.status===Status.RECHAZADO || !v.qrActivo));
+  const dentro = base
+    .filter(v => v.tipo === "visitante" && v.status === Status.DENTRO && v.qrActivo);
 
-    const rojos = llegados.filter(v => {
-      const w = calcTimes(v).esperaMin;
-      return w != null && w > WAIT_YELLOW_MAX;
-    }).length;
+  const fin = base
+    .filter(v =>
+      v.tipo === "visitante" &&
+      (v.status === Status.FINALIZADO || v.status === Status.RECHAZADO || !v.qrActivo)
+    );
 
-    const btnUsuarios = (userRole === ROLES.ADMIN)
-      ? `<button class="secondary" data-act="usuarios">Usuarios</button>`
-      : ``;
+  // ✅ TOTAL visible en dashboard
+  const totalHoy = base.length;
 
-    const btnAlta = (userRole === ROLES.ADMIN)
-      ? `<button class="secondary" id="btnAlta">➕ Alta de usuario</button>`
-      : ``;
+  // Botones por rol
+  const btnUsuarios = (userRole === ROLES.ADMIN)
+    ? `<button class="secondary" data-act="usuarios">Usuarios</button>`
+    : ``;
 
-    const btnScan = (userRole === ROLES.ANFITRION)
-      ? ``
-      : `<button class="secondary" id="btnScan">Escanear QR</button>`;
+  const btnAlta = (userRole === ROLES.ADMIN)
+    ? `<button class="secondary" id="btnAlta">➕ Alta de usuario</button>`
+    : ``;
 
-    const btnManual = (userRole === ROLES.ANFITRION)
-      ? ``
-      : `<button class="secondary" id="btnManual">Acción manual por ID</button>`;
+  const btnScan = (userRole === ROLES.ANFITRION)
+    ? ``
+    : `<button class="secondary" id="btnScan">Escanear QR</button>`;
 
-    const btnCita = (userRole === ROLES.ANFITRION)
-      ? ``
-      : `<button class="secondary" id="btnCita">➕ Nueva cita</button>`;
+  const btnCita = (userRole === ROLES.ANFITRION)
+    ? ``
+    : `<button class="secondary" id="btnCita">➕ Nueva cita</button>`;
 
-    appEl.innerHTML = `
+  // ✅ Render COMPLETO del dashboard
+  appEl.innerHTML = `
+    <!-- Pills superiores: FECHA + TOTAL -->
+    <div class="row" style="gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
+      <div class="pill">
+        <span class="dot brand"></span>
+        Vista:
+        <b style="color:var(--text); margin-left:6px;">
+          ${fechaLabel}
+        </b>
+      </div>
+
+      <span class="pill">
+        Total:
+        <b style="color:var(--text); margin-left:6px;">
+          ${totalHoy}
+        </b>
+      </span>
       <div class="row" style="margin-bottom:12px;">
-        ${btnScan}
-        ${btnCita}
-        <button class="secondary" data-act="visitantes">Visitantes</button>
-        ${btnAlta}
-        ${btnUsuarios}
+      ${btnScan}
+    </div>
+    </div>
+
+    <!-- Toolbar -->
+    
+
+    <!-- Cards -->
+    <div class="five">
+      <div class="card">
+        <div class="colTitle">
+          Programados
+          <span class="pill"><span class="dot info"></span>${programados.length}</span>
+        </div>
+        ${programados.length ? programados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
       </div>
 
-      <div class="five">
-        <div class="card">
-          <div class="colTitle">Programados <span class="pill"><span class="dot info"></span>${programados.length}</span></div>
-          ${programados.length ? programados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+      <div class="card">
+        <div class="colTitle">
+          Pend. Autorización
+          <span class="pill"><span class="dot warn"></span>${autoriz.length}</span>
         </div>
-
-        <div class="card">
-          <div class="colTitle">Pend. Autorización <span class="pill"><span class="dot warn"></span>${autoriz.length}</span></div>
-          ${autoriz.length ? autoriz.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
-        </div>
-
-        <div class="card">
-          <div class="colTitle">Llegaron <span class="pill"><span class="dot warn"></span>${llegados.length}</span></div>
-          ${llegados.length ? llegados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
-        </div>
-
-        <div class="card">
-          <div class="colTitle">Dentro <span class="pill"><span class="dot ok"></span>${dentro.length}</span></div>
-          ${dentro.length ? dentro.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
-        </div>
-
-        <div class="card">
-          <div class="colTitle">Finalizados / Rechazados <span class="pill"><span class="dot muted"></span>${fin.length}</span></div>
-          ${fin.length ? fin.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
-        </div>
+        ${autoriz.length ? autoriz.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
       </div>
-    `;
 
-    if(userRole !== ROLES.ANFITRION){
-      $("#btnScan") && ($("#btnScan").onclick = () => goTo(VIEWS.SCAN));
-      $("#btnManual") && ($("#btnManual").onclick = () => manualById());
-      $("#btnCita") && ($("#btnCita").onclick = () => goTo(VIEWS.CITA));
-    }
-    if(userRole === ROLES.ADMIN && $("#btnAlta")){
-      $("#btnAlta").onclick = () => goTo(VIEWS.ALTA);
-    }
+      <div class="card">
+        <div class="colTitle">
+          Llegaron
+          <span class="pill"><span class="dot warn"></span>${llegados.length}</span>
+        </div>
+        ${llegados.length ? llegados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+      </div>
+
+      <div class="card">
+        <div class="colTitle">
+          Dentro
+          <span class="pill"><span class="dot ok"></span>${dentro.length}</span>
+        </div>
+        ${dentro.length ? dentro.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+      </div>
+
+      <div class="card">
+        <div class="colTitle">
+          Finalizados / Rechazados
+          <span class="pill"><span class="dot muted"></span>${fin.length}</span>
+        </div>
+        ${fin.length ? fin.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+      </div>
+    </div>
+  `;
+
+  // ✅ Bindings post-render
+  if(userRole !== ROLES.ANFITRION){
+    document.getElementById("btnScan")?.addEventListener("click", () => goTo(VIEWS.SCAN));
+    document.getElementById("btnCita")?.addEventListener("click", () => goTo(VIEWS.CITA));
   }
+
+  if(userRole === ROLES.ADMIN){
+    document.getElementById("btnAlta")?.addEventListener("click", () => goTo(VIEWS.ALTA));
+  }
+}
 
   function renderVisitCard(v){
     const t = calcTimes(v);
@@ -764,6 +1074,7 @@
 
   // ---------- Alta Usuario (Admin) ----------
   function renderAltaUsuario(){
+  try{ setActiveSb("alta"); }catch{}
     if(userRole !== ROLES.ADMIN){
       toast("Acceso denegado","Solo ADMIN puede dar de alta usuarios.", "bad", 3200);
       return goTo(VIEWS.DASH);
@@ -872,6 +1183,7 @@
 
   // ---------- Nueva Cita (PROGRAMADO) ----------
   function renderNuevaCita(){
+  try{ setActiveSb("cita"); }catch{}
     if(userRole === ROLES.ANFITRION){
       toast("No permitido","El rol Anfitrión no crea citas.", "warn", 2600);
       return goTo(VIEWS.DASH);
@@ -1031,6 +1343,7 @@
   }
 
   function renderVisitantes(){
+  try{ setActiveSb("visitantes"); }catch{}
     const todayISO = new Date().toISOString().slice(0,10);
     appEl.innerHTML = `
       <div class="card">
@@ -1192,6 +1505,7 @@
 
   // ---------- Usuarios (solo Admin) ----------
   function renderUsuarios(){
+  try{ setActiveSb("usuarios"); }catch{}
     if(userRole !== ROLES.ADMIN){
       toast("Acceso denegado", "Solo ADMIN puede ver usuarios.", "bad", 3200);
       return goTo(VIEWS.DASH);
@@ -1254,6 +1568,7 @@
 
   // ---------- Scanner ----------
   function renderScanner(){
+  try{ setActiveSb("scan"); }catch{}
     if(userRole === ROLES.ANFITRION){
       toast("No permitido","El rol Anfitrión no usa escáner.", "warn", 2600);
       return goTo(VIEWS.DASH);
