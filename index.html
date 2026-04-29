@@ -1050,7 +1050,9 @@ header #btnLogout{
     }
 
     return `
-      <div class="visitCard ${ragClass}">
+      <div class="visitCard ${ragClass}"
+     data-act="verDetalleCita" 
+     data-id="${esc(v.id)}">
         <div class="row" style="justify-content:space-between;">
           <div>
             <b>${esc(v.nombreVisitante || "-")}</b>
@@ -1069,6 +1071,46 @@ header #btnLogout{
       </div>
     `;
   }
+
+function openDetalleCitaModal(v){
+  const back = document.createElement("div");
+  back.className = "modal-backdrop";
+
+  back.innerHTML = `
+    <div class="modal">
+      <h3>Detalle de la cita</h3>
+      <p class="muted">
+        ID: <b>${esc(v.id)}</b><br>
+        Estatus: <b>${esc(v.status)}</b>
+      </p>
+
+      <div class="divider"></div>
+
+      <p><b>Visitante:</b> ${esc(v.nombreVisitante || '-')}</p>
+      <p><b>Empresa:</b> ${esc(v.empresa || '-')}</p>
+      <p><b>Motivo:</b> ${esc(v.motivoVisita || '-')}</p>
+      <p><b>Visita a:</b> ${esc(v.personaVisita || '-')}</p>
+
+      <p><b>Fecha programada:</b> ${esc(v.fechaProgramada || '-')} ${esc(v.horaProgramada || '')}</p>
+
+      <div class="divider"></div>
+
+      <div class="row" style="justify-content:flex-end;">
+        <button class="secondary" id="btnCerrarDetalle">Cerrar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(back);
+
+  const close = () => back.remove();
+
+  back.addEventListener("click", e => {
+    if (e.target === back) close();
+  });
+
+  back.querySelector("#btnCerrarDetalle").onclick = close;
+}
 
   // ---------- Alta Usuario (Admin) ----------
   function renderAltaUsuario(){
@@ -2084,6 +2126,17 @@ async function actualizarUsuario(uid, data){
   }
   return;
 }
+
+// ✅ Ver detalle de cita (click en tarjeta)
+  if(act === "verDetalleCita"){
+    const v = visitasHoy.find(x => x.id === id);
+    if(v){
+      openDetalleCitaModal(v);
+    }else{
+      toast("Detalle","No se encontró la cita.","warn",3000);
+    }
+    return;
+  }
 
   });
 
