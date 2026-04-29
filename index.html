@@ -11,7 +11,7 @@
 
   <!-- QRCode.js (para generar QR en citas programadas / ver QR) -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
   <style>
     /* Reset */
     *, *::before, *::after { box-sizing: border-box; }
@@ -299,6 +299,46 @@ header{
 header #btnLogout{
   display: none !important;
 }
+/* ===== KPI Pro Charts ===== */
+.kpi-grid{
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap:12px;
+}
+.kpi-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:12px;
+}
+@media (max-width:980px){
+  .kpi-grid{ grid-template-columns:1fr; }
+  .kpi-row{ grid-template-columns:1fr; }
+}
+.chart-card{
+  padding:14px;
+}
+.chart-wrap{
+  position:relative;
+  width:100%;
+  height:280px;
+}
+.chart-wrap.sm{ height:220px; }
+.kpi-cards{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+}
+@media (max-width:980px){
+  .kpi-cards{ grid-template-columns:1fr 1fr; }
+}
+.kpi-metric{
+  border:1px solid rgba(15,23,42,.10);
+  border-radius:14px;
+  background:#fff;
+  padding:12px;
+}
+.kpi-metric b{ font-size:18px; display:block; }
+.kpi-metric span{ color:#64748b; font-size:12px; }
 
 </style>
 
@@ -404,8 +444,16 @@ header #btnLogout{
         <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 8a4 4 0 1 0 0-8"/><path d="M17 8a4 4 0 1 0 0-8"/><path d="M2 22a7 7 0 0 1 10-6"/><path d="M14 16a7 7 0 0 1 8 6"/></svg></span>
         <span class="sb-txt">Usuarios</span>
       </div>
-    </div>
+    <div class="sb-btn" data-sb="kpi">
+  <span class="sb-ic" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19H20"/><path d="M8 15l3-3 3 2 4-6"/></svg>
+  </span>
+  <span class="sb-txt">Reporte KPI</span>
+</div>
+  
+</div>
   </div>
+
 
   <div style="margin-top:auto; padding:0 6px 6px;">
     <div class="sb-btn" data-sb="logout" style="background: rgba(220,38,38,.08); border-color: rgba(220,38,38,.18);">
@@ -515,7 +563,8 @@ header #btnLogout{
    if(key === 'visitantes'){ setActiveSb('visitantes'); sbClose(); goTo(VIEWS.VIS); return; }
    if(key === 'alta'){ setActiveSb('alta'); sbClose(); goTo(VIEWS.ALTA); return; }
    if(key === 'usuarios'){ setActiveSb('usuarios'); sbClose(); goTo(VIEWS.USERS); return; }
- });
+   if(key === 'kpi'){ setActiveSb('kpi'); sbClose(); goTo(VIEWS.KPI); return; }
+  });
 
  if(btnHamb){ btnHamb.addEventListener('click', (e)=>{ e.preventDefault(); sbToggle(); }); }
  if(sbOverlay){ sbOverlay.addEventListener('click', sbClose); }
@@ -545,7 +594,8 @@ header #btnLogout{
     ALTA: "alta",
     VIS: "visitantes",
     CITA: "cita",
-    USERS: "usuarios"
+    USERS: "usuarios",
+    KPI: "kpi"
   };
 
   let view = VIEWS.LOGIN;
@@ -585,6 +635,7 @@ header #btnLogout{
     if(view === VIEWS.VIS) return renderVisitantes();
     if(view === VIEWS.CITA) return renderNuevaCita();
     if(view === VIEWS.USERS) return renderUsuarios();
+    if(view === VIEWS.KPI) return renderKPI();
   }
 
   function dayBounds(d=new Date()){
@@ -997,6 +1048,250 @@ header #btnLogout{
   if(userRole === ROLES.ADMIN){
     document.getElementById("btnAlta")?.addEventListener("click", () => goTo(VIEWS.ALTA));
   }
+}
+
+let __kpiCharts = []; // para destruir charts al re-render
+
+function destroyKpiCharts(){
+  try{ __kpiCharts.forEach(c => c?.destroy?.()); }catch{}
+  __kpiCharts = [];
+}
+
+function renderKPI(){
+  try{ setActiveSb("kpi"); }catch{}
+
+  if(userRole !== ROLES.ADMIN){
+    toast("Acceso denegado","Solo ADMIN puede ver el reporte KPI.", "bad", 3200);
+    return goTo(VIEWS.DASH);
+  }
+
+  // Base del día (lo que ya trae tu listener del día)
+  const base = (visitasHoy || []).filter(v => v.tipo === "visitante");
+
+  // Conteos por estatus
+  const k = {
+    programados: base.filter(v => v.status === Status.PROGRAMADO).length,
+    autorizacion: base.filter(v => v.status === Status.AUTORIZACION).length,
+    llegados: base.filter(v => v.status === Status.LLEGADO).length,
+    dentro: base.filter(v => v.status === Status.DENTRO).length,
+    finalizados: base.filter(v => v.status === Status.FINALIZADO).length,
+    rechazados: base.filter(v => v.status === Status.RECHAZADO).length,
+    total: base.length
+  };
+
+  // Tiempos (min)
+  const waits = base
+    .filter(v => v.llegadaTs && v.entradaTs && v.entradaTs >= v.llegadaTs)
+    .map(v => Math.round((v.entradaTs - v.llegadaTs) / 60000));
+
+  const avg = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : 0;
+  const esperaProm = avg(waits);
+
+  // Semáforo (usa tus límites WAIT_GREEN_MAX / WAIT_YELLOW_MAX)
+  const verde = waits.filter(m => m <= WAIT_GREEN_MAX).length;
+  const amarillo = waits.filter(m => m > WAIT_GREEN_MAX && m <= WAIT_YELLOW_MAX).length;
+  const rojo = waits.filter(m => m > WAIT_YELLOW_MAX).length;
+
+  // Cumplimiento simple
+  const cumplimiento = k.programados ? Math.round((k.finalizados / k.programados) * 100) : 0;
+
+  // Tendencia por hora (programadas)
+  const hours = Array.from({length: 24}, (_,i)=> String(i).padStart(2,"0")+":00");
+  const byHour = new Array(24).fill(0);
+  base.forEach(v=>{
+    if(!v.programadaTs) return;
+    const h = new Date(v.programadaTs).getHours();
+    byHour[h] += 1;
+  });
+
+  const fechaLabel = new Date().toLocaleDateString('es-MX');
+
+  appEl.innerHTML = `
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <h2 style="margin:0 0 4px;">Reporte KPI</h2>
+          <div class="muted">Fecha: <b>${fechaLabel}</b> · Base: agenda del día</div>
+        </div>
+        <div class="row">
+          <button class="secondary" data-act="volverKPI">Volver</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Tarjetas KPI -->
+      <div class="kpi-cards">
+        <div class="kpi-metric"><span>Total</span><b>${k.total}</b></div>
+        <div class="kpi-metric"><span>% Cumplimiento (Finalizado/Programado)</span><b>${cumplimiento}%</b></div>
+        <div class="kpi-metric"><span>Espera promedio (min)</span><b>${esperaProm}</b></div>
+        <div class="kpi-metric"><span>Pend. Autorización</span><b>${k.autorizacion}</b></div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <!-- Gráficas -->
+      <div class="kpi-grid">
+        <div class="card chart-card">
+          <div class="colTitle">Estatus del día</div>
+          <div class="chart-wrap">
+            <canvas id="chStatus"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="colTitle">Semáforo de espera (Llegado→Dentro)</div>
+          <div class="chart-wrap sm">
+            <canvas id="chRag"></canvas>
+          </div>
+          <div class="muted" style="margin-top:8px;">
+            Verde ≤ ${WAIT_GREEN_MAX} min · Amarillo ≤ ${WAIT_YELLOW_MAX} min · Rojo > ${WAIT_YELLOW_MAX} min
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="card chart-card">
+        <div class="colTitle">Tendencia por hora (citas programadas)</div>
+        <div class="chart-wrap">
+          <canvas id="chHour"></canvas>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="card">
+        <div class="colTitle">Detalle del día</div>
+        <div style="overflow:auto;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>Visitante</th>
+                <th>Empresa</th>
+                <th>Visita a</th>
+                <th>Estatus</th>
+                <th>Espera (min)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${base.map(v => {
+                const hora = v.horaProgramada || (v.programadaTs ? new Date(v.programadaTs).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : '-');
+                const espera = (v.llegadaTs && v.entradaTs) ? Math.round((v.entradaTs - v.llegadaTs)/60000) : '';
+                return `
+                  <tr>
+                    <td>${esc(hora)}</td>
+                    <td><b>${esc(v.nombreVisitante||'-')}</b><br><code>${esc(v.id)}</code></td>
+                    <td>${esc(v.empresa||'-')}</td>
+                    <td>${esc(v.personaVisita||'-')}</td>
+                    <td>${esc(String(v.status||'-').toUpperCase())}</td>
+                    <td>${esc(espera)}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Crear gráficas (destruye previas)
+  setTimeout(() => {
+    destroyKpiCharts();
+    if(!window.Chart){
+      toast("KPI", "No cargó Chart.js (revisa el CDN).", "bad", 4200);
+      return;
+    }
+
+    // 1) Bar: estatus
+    const ctx1 = document.getElementById("chStatus")?.getContext("2d");
+    if(ctx1){
+      __kpiCharts.push(new Chart(ctx1, {
+        type: "bar",
+        data: {
+          labels: ["Programado","Autorización","Llegado","Dentro","Finalizado","Rechazado"],
+          datasets: [{
+            label: "Cantidad",
+            data: [k.programados, k.autorizacion, k.llegados, k.dentro, k.finalizados, k.rechazados],
+            backgroundColor: [
+              "rgba(2,132,199,.30)",
+              "rgba(217,119,6,.30)",
+              "rgba(217,119,6,.30)",
+              "rgba(22,163,74,.30)",
+              "rgba(148,163,184,.35)",
+              "rgba(220,38,38,.30)"
+            ],
+            borderColor: [
+              "rgba(2,132,199,.9)",
+              "rgba(217,119,6,.9)",
+              "rgba(217,119,6,.9)",
+              "rgba(22,163,74,.9)",
+              "rgba(148,163,184,.9)",
+              "rgba(220,38,38,.9)"
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      }));
+    }
+
+    // 2) Doughnut: semáforo
+    const ctx2 = document.getElementById("chRag")?.getContext("2d");
+    if(ctx2){
+      __kpiCharts.push(new Chart(ctx2, {
+        type: "doughnut",
+        data: {
+          labels: ["Verde","Amarillo","Rojo"],
+          datasets: [{
+            data: [verde, amarillo, rojo],
+            backgroundColor: ["rgba(22,163,74,.35)","rgba(217,119,6,.35)","rgba(220,38,38,.35)"],
+            borderColor: ["rgba(22,163,74,.9)","rgba(217,119,6,.9)","rgba(220,38,38,.9)"],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+          cutout: "65%"
+        }
+      }));
+    }
+
+    // 3) Line: tendencia por hora
+    const ctx3 = document.getElementById("chHour")?.getContext("2d");
+    if(ctx3){
+      __kpiCharts.push(new Chart(ctx3, {
+        type: "line",
+        data: {
+          labels: hours,
+          datasets: [{
+            label: "Citas",
+            data: byHour,
+            borderColor: "rgba(37,99,235,.95)",
+            backgroundColor: "rgba(37,99,235,.15)",
+            tension: 0.25,
+            fill: true,
+            pointRadius: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      }));
+    }
+  }, 0);
 }
 
   function renderVisitCard(v){
@@ -2074,6 +2369,7 @@ async function actualizarUsuario(uid, data){
     if(act === "volverUsuarios") return goTo(VIEWS.DASH);
     if(act === "loadVisitantes") return await loadVisitantes();
     if(act === "volverVisitantes") return goTo(VIEWS.DASH);
+    if(act === "volverKPI") return goTo(VIEWS.DASH);
 
     if(act === "verQR"){
       await openQrModal({ id, title: "QR de la visita", subtitle: "Guarda o comparte este QR." });
