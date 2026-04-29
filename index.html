@@ -1233,6 +1233,7 @@ Carlos Gómez"
   <option>Jorge Olvera</option>
   <option>Yolanda Hurtado</option>
   <option>Paola Palomares</option>
+  <option>Servicio médico</option>
 </select>
 
         <div class="two">
@@ -1579,43 +1580,157 @@ try {
     loadUsuarios();
   }
 
-  async function loadUsuarios(){
-    const { db, collection, getDocs } = window.__FB__;
-    const cont = document.getElementById("usersTable");
-    try{
-      const snap = await getDocs(collection(db, "users"));
-      const rows = [];
-      snap.forEach(d => {
-        const u = d.data() || {};
-        rows.push(`
-          <tr>
-            <td><b>${esc(u.nombre || '-') }</b></td>
-            <td>${esc(u.email || '-') }</td>
-            <td>${esc(String(u.rol || '-').toUpperCase())}</td>
-            <td>${u.pinAutorizacion ? '●●●●' : '-'}</td>
-            <td>${u.activo === false ? 'No' : 'Sí'}</td>
-          </tr>
-        `);
-      });
-      cont.innerHTML = `
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Rol</th>
-              <th>PIN</th>
-              <th>Activo</th>
-            </tr>
-          </thead>
-          <tbody>${rows.join('')}</tbody>
-        </table>
-      `;
-    }catch(e){
-      console.error(e);
-      cont.innerHTML = `<div class="muted">No se pudieron cargar los usuarios.</div>`;
-    }
+function openEditarUsuario(u){
+  const back = document.createElement("div");
+  back.className = "modal-backdrop";
+
+  back.innerHTML = `
+    <div class="modal">
+      <h3>Editar usuario</h3>
+      <p class="muted">${esc(u.email || '')}</p>
+
+      <label>Nombre</label>
+      <input id="euNombre" value="${esc(u.nombre || '')}" />
+
+      <label>Rol</label>
+      <select id="euRol">
+        <option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Admin</option>
+        <option value="guardia" ${u.rol === 'guardia' ? 'selected' : ''}>Guardia</option>
+        <option value="anfitrion" ${u.rol === 'anfitrion' ? 'selected' : ''}>Anfitrión</option>
+      </select>
+
+      <label>PIN de autorización</label>
+      <input id="euPin" type="password" value="${esc(u.pinAutorizacion || '')}" />
+
+      <label>Activo</label>
+      <select id="euActivo">
+        <option value="true" ${u.activo !== false ? 'selected' : ''}>Sí</option>
+        <option value="false" ${u.activo === false ? 'selected' : ''}>No</option>
+      </select>
+
+      <div style="height:12px"></div>
+
+      <div class="row" style="justify-content:flex-end;">
+        <button class="secondary" id="btnCancelEdit">Cancelar</button>
+        <button class="ok" id="btnSaveEdit">Guardar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(back);
+
+  const close = () => back.remove();
+
+  back.addEventListener("click", e => {
+    if (e.target === back) close();
+  });
+
+  back.querySelector("#btnCancelEdit").onclick = close;
+
+  back.querySelector("#btnSaveEdit").onclick = async () => {
+    const data = {
+      nombre: back.querySelector("#euNombre").value.trim(),
+      rol: back.querySelector("#euRol").value,
+      pinAutorizacion: back.querySelector("#euPin").value.trim(),
+      activo: back.querySelector("#euActivo").value === "true",
+      updatedTs: Date.now()
+    };
+
+    await actualizarUsuario(u.uid, data);
+    close();
+  };
+}
+
+async function actualizarUsuario(uid, data){
+  const { db, doc, updateDoc } = window.__FB__;
+
+  try{
+    await updateDoc(doc(db, "users", uid), data);
+    toast("Usuario actualizado", "Cambios guardados correctamente.", "ok", 2200);
+    loadUsuarios(); // 🔁 refresca la tabla
+  }catch(e){
+    console.error(e);
+    toast("Error", "No se pudo actualizar el usuario.", "bad", 4200);
   }
+}
+
+
+ // ===== Cache global de usuarios =====
+let usuariosCache = [];
+
+// ===== Cargar usuarios (solo ADMIN) =====
+async function loadUsuarios() {
+  const { db, collection, getDocs } = window.__FB__;
+  const cont = document.getElementById("usersTable");
+
+  cont.innerHTML = `<div class="muted">Cargando usuarios…</div>`;
+
+  try {
+    const snap = await getDocs(collection(db, "users"));
+
+    usuariosCache = []; // 🔥 limpiar cache
+    const rows = [];
+
+    snap.forEach(d => {
+      // ✅ IMPORTANTE: el UID REAL es d.id
+      const u = {
+        uid: d.id,
+        ...d.data()
+      };
+
+      usuariosCache.push(u);
+
+      rows.push(`
+        <tr>
+          <td><b>${esc(u.nombre || '-')}</b></td>
+          <td>${esc(u.email || '-')}</td>
+          <td>${esc(String(u.rol || '-').toUpperCase())}</td>
+          <td>${u.pinAutorizacion ? '●●●●' : '-'}</td>
+          <td>${u.activo === false ? 'No' : 'Sí'}</td>
+          <td>
+            <button
+              class="secondary"
+              data-act="editarUsuario"
+              data-id="${esc(u.uid)}">
+              Editar
+            </button>
+          </td>
+        </tr>
+      `);
+    });
+
+    if (!rows.length) {
+      cont.innerHTML = `<div class="muted">No hay usuarios registrados.</div>`;
+      return;
+    }
+
+    cont.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>PIN</th>
+            <th>Activo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.join("")}
+        </tbody>
+      </table>
+    `;
+
+  } catch (e) {
+    console.error(e);
+    cont.innerHTML = `
+      <div class="muted">
+        No se pudieron cargar los usuarios.
+      </div>
+    `;
+  }
+}
 
   // ---------- Scanner ----------
   function renderScanner(){
@@ -1838,6 +1953,72 @@ try {
     }
   }
 
+  function openEditarUsuario(u){
+  const back = document.createElement("div");
+  back.className = "modal-backdrop";
+  back.innerHTML = `
+  <div class="modal">
+    <h3>Editar usuario</h3>
+    <p class="muted">${esc(u.email)}</p>
+
+    <label>Nombre</label>
+    <input id="euNombre" value="${esc(u.nombre || '')}"/>
+
+    <label>Rol</label>
+    <select id="euRol">
+      <option value="admin" ${u.rol === 'admin' ? 'selected':''}>Admin</option>
+      <option value="guardia" ${u.rol === 'guardia' ? 'selected':''}>Guardia</option>
+      <option value="anfitrion" ${u.rol === 'anfitrion' ? 'selected':''}>Anfitrión</option>
+    </select>
+
+    <label>PIN autorización</label>
+    <input id="euPin" type="password" value="${esc(u.pinAutorizacion || '')}"/>
+
+    <label>Activo</label>
+    <select id="euActivo">
+      <option value="true" ${u.activo !== false ? 'selected':''}>Sí</option>
+      <option value="false" ${u.activo === false ? 'selected':''}>No</option>
+    </select>
+
+    <div style="height:12px"></div>
+
+    <div class="row" style="justify-content:flex-end;">
+      <button class="secondary" id="btnCancelEdit">Cancelar</button>
+      <button class="ok" id="btnSaveEdit">Guardar</button>
+    </div>
+  </div>
+  `;
+  document.body.appendChild(back);
+
+  const close = () => back.remove();
+
+  back.querySelector("#btnCancelEdit").onclick = close;
+
+  back.querySelector("#btnSaveEdit").onclick = async () => {
+    const data = {
+      nombre: back.querySelector("#euNombre").value.trim(),
+      rol: back.querySelector("#euRol").value,
+      pinAutorizacion: back.querySelector("#euPin").value.trim(),
+      activo: back.querySelector("#euActivo").value === "true",
+      updatedTs: Date.now()
+    };
+    await actualizarUsuario(u.uid, data);
+    close();
+  };
+}
+
+async function actualizarUsuario(uid, data){
+  const { db, doc, updateDoc } = window.__FB__;
+  try{
+    await updateDoc(doc(db, "users", uid), data);
+    toast("Usuario actualizado","Cambios guardados.","ok",2200);
+    loadUsuarios();
+  }catch(e){
+    console.error(e);
+    toast("Error","No se pudo actualizar el usuario.","bad",4200);
+  }
+}
+
   // Click actions
   document.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-act]");
@@ -1891,21 +2072,39 @@ try {
       await darSalida(id, inc);
       return;
     }
+
+    if (act === "editarUsuario") {
+  const uid = btn.dataset.id;
+  const u = usuariosCache.find(x => x.uid === uid);
+
+  if (u) {
+    openEditarUsuario(u);
+  } else {
+    toast("Error", "No se encontró el usuario en memoria.", "bad", 3000);
+  }
+  return;
+}
+
   });
 
   // ---------- REALTIME HOY ----------
- function startListenerHoy(){
+function startListenerHoy(){
   stopListenerHoy();
 
   const { db, collection, query, where, orderBy, limit, onSnapshot } = window.__FB__;
-  const { start, end } = dayBounds(new Date());
 
-  // ✅ MISMO QUERY PARA TODOS LOS ROLES
+  // ✅ Límites del día de HOY
+  const hoyInicio = new Date();
+  hoyInicio.setHours(0, 0, 0, 0);
+
+  const hoyFin = new Date(hoyInicio.getTime() + 24 * 60 * 60 * 1000);
+
+  // ✅ QUERY POR FECHA PROGRAMADA (NO POR FECHA DE CREACIÓN)
   const q = query(
     collection(db, "visitas"),
-    where("createdTs", ">=", start),
-    where("createdTs", "<", end),
-    orderBy("createdTs", "desc"),
+    where("programadaTs", ">=", hoyInicio.getTime()),
+    where("programadaTs", "<", hoyFin.getTime()),
+    orderBy("programadaTs", "asc"),
     limit(300)
   );
 
@@ -1913,25 +2112,34 @@ try {
     q,
     (snap) => {
       const arr = [];
-      snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+
+      snap.forEach(d => {
+        arr.push({ id: d.id, ...d.data() });
+      });
+
+      // ✅ Solo tipo visitante
       visitasHoy = arr.filter(v => v.tipo === "visitante");
 
-      console.log("VISITAS CARGADAS:", visitasHoy.length);
+      console.log(
+        "VISITAS DEL DASHBOARD:",
+        visitasHoy.map(v => ({
+          id: v.id,
+          programada: new Date(v.programadaTs).toLocaleString(),
+          status: v.status
+        }))
+      );
 
-      if (view === VIEWS.DASH) renderDashboard();
+      if (view === VIEWS.DASH) {
+        renderDashboard();
+      }
     },
     (err) => {
       console.error("REALTIME ERROR:", err);
-      toast(
-        "Realtime",
-        "No se pudo escuchar cambios (JS).",
-        "bad",
-        4200
-      );
+      toast("Realtime", "No se pudo escuchar cambios del día.", "bad", 4200);
     }
   );
 }
-  
+
 function stopListenerHoy(){
     if(unsubscribeHoy){
       try{ unsubscribeHoy(); }catch{}
