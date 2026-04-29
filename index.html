@@ -426,16 +426,23 @@ header #btnLogout{
         <span class="sb-txt">Nueva cita</span>
       </div>
 
-      <div class="sb-btn" data-sb="visitantes">
-        <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h14"/><path d="M3 12h14"/><path d="M3 19h14"/><path d="M19 5v14"/><path d="M19 12h2"/></svg></span>
-        <span class="sb-txt">Visitantes (tabla)</span>
-      </div>
+      <div class="sb-btn" data-sb="historial">
+  <span class="sb-ic" aria-hidden="true">
+    <svg viewBox="0 0 24 24">
+      <path d="M3 12a9 9 0 1 0 3-7"/>
+      <path d="M3 3v6h6"/>
+      <path d="M12 7v5l3 3"/>
+    </svg>
+  </span>
+  <span class="sb-txt">Historial</span>
+</div>
     </div>
   </div>
 
   <div class="sb-section" id="sbAdminSection" style="display:none;">
     <h4>Administración</h4>
     <div class="sb-nav">
+
       <div class="sb-btn" data-sb="alta">
         <span class="sb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M4 21a8 8 0 0 1 16 0"/><path d="M19 8h2"/><path d="M20 7v2"/></svg></span>
         <span class="sb-txt">Alta de usuario</span>
@@ -449,8 +456,9 @@ header #btnLogout{
     <svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19H20"/><path d="M8 15l3-3 3 2 4-6"/></svg>
   </span>
   <span class="sb-txt">Reporte KPI</span>
-</div>
+    </div>
   
+
 </div>
   </div>
 
@@ -564,6 +572,7 @@ header #btnLogout{
    if(key === 'alta'){ setActiveSb('alta'); sbClose(); goTo(VIEWS.ALTA); return; }
    if(key === 'usuarios'){ setActiveSb('usuarios'); sbClose(); goTo(VIEWS.USERS); return; }
    if(key === 'kpi'){ setActiveSb('kpi'); sbClose(); goTo(VIEWS.KPI); return; }
+   if(key === 'historial'){ setActiveSb('historial'); sbClose(); goTo(VIEWS.HIST); return;}
   });
 
  if(btnHamb){ btnHamb.addEventListener('click', (e)=>{ e.preventDefault(); sbToggle(); }); }
@@ -588,15 +597,17 @@ header #btnLogout{
   const WAIT_YELLOW_MAX = 15;
 
   const VIEWS = {
-    LOGIN: "login",
-    DASH: "dash",
-    SCAN: "scan",
-    ALTA: "alta",
-    VIS: "visitantes",
-    CITA: "cita",
-    USERS: "usuarios",
-    KPI: "kpi"
-  };
+  LOGIN: "login",
+  DASH: "dash",
+  SCAN: "scan",
+  ALTA: "alta",
+  VIS: "visitantes",
+  CITA: "cita",
+  USERS: "usuarios",
+  KPI: "kpi",
+  HIST: "historial" 
+};
+
 
   let view = VIEWS.LOGIN;
   let currentUser = null;
@@ -636,6 +647,7 @@ header #btnLogout{
     if(view === VIEWS.CITA) return renderNuevaCita();
     if(view === VIEWS.USERS) return renderUsuarios();
     if(view === VIEWS.KPI) return renderKPI();
+    if(view === VIEWS.HIST) return renderHistorial();
   }
 
   function dayBounds(d=new Date()){
@@ -1292,6 +1304,186 @@ function renderKPI(){
       }));
     }
   }, 0);
+}
+
+function renderHistorial(){
+  try{ setActiveSb("historial"); }catch{}
+
+  if(userRole !== ROLES.ADMIN){
+    toast("Acceso denegado","Solo ADMIN puede consultar el historial.","bad",3000);
+    return goTo(VIEWS.DASH);
+  }
+
+  const todayISO = new Date().toISOString().slice(0,10);
+
+  appEl.innerHTML = `
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <h2 style="margin:0 0 4px;">Historial de Visitas</h2>
+          <div class="muted">Consulta por día (no realtime)</div>
+        </div>
+        <button class="secondary" data-act="volverHistorial">Volver</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row" style="gap:12px; flex-wrap:wrap;">
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="histFecha" value="${todayISO}">
+        </div>
+        <div style="align-self:flex-end;">
+          <button class="secondary" data-act="cargarHistorial">Cargar</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="histKPIs"></div>
+      <div id="histTabla" style="margin-top:12px;"></div>
+    </div>
+  `;
+}
+
+async function cargarHistorialPorDia(fechaISO){
+  const { db, collection, query, where, orderBy, getDocs, limit } = window.__FB__;
+
+  const start = new Date(fechaISO + "T00:00:00").getTime();
+  const end   = new Date(fechaISO + "T23:59:59").getTime();
+
+  const q = query(
+    collection(db, "visitas"),
+    where("programadaTs", ">=", start),
+    where("programadaTs", "<=", end),
+    orderBy("programadaTs", "asc"),
+    limit(2000)
+  );
+
+  const snap = await getDocs(q);
+  const list = [];
+  snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+
+  // Solo visitantes (igual que haces en dashboard/tabla)
+  return list.filter(v => v.tipo === "visitante");
+}
+
+async function loadHistorial(){
+  const fecha = document.getElementById("histFecha")?.value;
+  const kpiEl = document.getElementById("histKPIs");
+  const tabEl = document.getElementById("histTabla");
+
+  if(!fecha || !kpiEl || !tabEl){
+    toast("Historial","No se encontró la fecha o contenedores del historial.","bad",3500);
+    return;
+  }
+
+  // UI loading
+  kpiEl.innerHTML = `<span class="pill"><span class="dot info"></span>Cargando KPIs…</span>`;
+  tabEl.innerHTML = `<div class="muted">Cargando registros…</div>`;
+
+  try{
+    const list = await cargarHistorialPorDia(fecha);
+
+    // ===== KPIs =====
+    const total = list.length;
+    const programados  = list.filter(v => v.status === Status.PROGRAMADO).length;
+    const autorizacion = list.filter(v => v.status === Status.AUTORIZACION).length;
+    const llegados     = list.filter(v => v.status === Status.LLEGADO).length;
+    const dentro       = list.filter(v => v.status === Status.DENTRO).length;
+    const finalizados  = list.filter(v => v.status === Status.FINALIZADO).length;
+    const rechazados   = list.filter(v => v.status === Status.RECHAZADO).length;
+
+    // Espera promedio (Llegado → Dentro)
+    const waits = list
+      .map(v => calcTimes(v).esperaMin)
+      .filter(x => x !== null);
+
+    const avg = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : 0;
+    const esperaProm = avg(waits);
+
+    // Semáforo (usa tus límites existentes)
+    const verde    = waits.filter(m => m <= WAIT_GREEN_MAX).length;
+    const amarillo = waits.filter(m => m > WAIT_GREEN_MAX && m <= WAIT_YELLOW_MAX).length;
+    const rojo     = waits.filter(m => m > WAIT_YELLOW_MAX).length;
+
+    kpiEl.innerHTML = `
+      <div class="row" style="gap:8px; flex-wrap:wrap;">
+        <span class="pill"><span class="dot brand"></span>Total: <b style="color:#0f172a;margin-left:6px;">${total}</b></span>
+        <span class="pill"><span class="dot info"></span>Programados: <b style="color:#0f172a;margin-left:6px;">${programados}</b></span>
+        <span class="pill"><span class="dot warn"></span>Autorización: <b style="color:#0f172a;margin-left:6px;">${autorizacion}</b></span>
+        <span class="pill"><span class="dot warn"></span>Llegados: <b style="color:#0f172a;margin-left:6px;">${llegados}</b></span>
+        <span class="pill"><span class="dot ok"></span>Dentro: <b style="color:#0f172a;margin-left:6px;">${dentro}</b></span>
+        <span class="pill"><span class="dot muted"></span>Finalizados: <b style="color:#0f172a;margin-left:6px;">${finalizados}</b></span>
+        <span class="pill"><span class="dot bad"></span>Rechazados: <b style="color:#0f172a;margin-left:6px;">${rechazados}</b></span>
+        <span class="pill" title="Llegado→Dentro"><span class="dot brand"></span>Espera prom: <b style="color:#0f172a;margin-left:6px;">${esperaProm} min</b></span>
+        <span class="pill" title="Semáforo de espera"><span class="dot ok"></span>${verde}</span>
+        <span class="pill" title="Semáforo de espera"><span class="dot warn"></span>${amarillo}</span>
+        <span class="pill" title="Semáforo de espera"><span class="dot bad"></span>${rojo}</span>
+      </div>
+    `;
+
+    // ===== Tabla =====
+    if(!list.length){
+      tabEl.innerHTML = `<div class="muted">No hay registros para ese día.</div>`;
+      return;
+    }
+
+    const badge = (s) => {
+      if(s === Status.PROGRAMADO) return `<span class="pill"><span class="dot info"></span>PROGRAMADO</span>`;
+      if(s === Status.AUTORIZACION) return `<span class="pill"><span class="dot warn"></span>AUTORIZACIÓN</span>`;
+      if(s === Status.LLEGADO) return `<span class="pill"><span class="dot warn"></span>LLEGADO</span>`;
+      if(s === Status.DENTRO) return `<span class="pill"><span class="dot ok"></span>DENTRO</span>`;
+      if(s === Status.FINALIZADO) return `<span class="pill"><span class="dot muted"></span>FINALIZADO</span>`;
+      if(s === Status.RECHAZADO) return `<span class="pill"><span class="dot bad"></span>RECHAZADO</span>`;
+      return `<span class="pill">${esc(s || "-")}</span>`;
+    };
+
+    tabEl.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Visitante</th>
+            <th>Empresa</th>
+            <th>Visita a</th>
+            <th>Estatus</th>
+            <th>Espera (min)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(v => {
+            const hora = v.horaProgramada
+              || (v.programadaTs ? new Date(v.programadaTs).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : '-');
+
+            const espera = (v.llegadaTs && v.entradaTs)
+              ? Math.round((v.entradaTs - v.llegadaTs)/60000)
+              : "";
+
+            return `
+              <tr data-act="verDetalleCita" data-id="${esc(v.id)}">
+                <td>${esc(hora)}</td>
+                <td><b>${esc(v.nombreVisitante || "-")}</b><br><code>${esc(v.id)}</code></td>
+                <td>${esc(v.empresa || "-")}</td>
+                <td>${esc(v.personaVisita || "-")}</td>
+                <td>${badge(v.status)}</td>
+                <td>${esc(espera)}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+      <div class="muted" style="margin-top:8px;">
+        Tip: puedes dar click en una fila para ver el detalle de la cita.
+      </div>
+    `;
+
+  }catch(e){
+    console.error(e);
+    kpiEl.innerHTML = `<span class="pill"><span class="dot bad"></span>Error</span>`;
+    tabEl.innerHTML = `<div class="muted">No se pudo cargar el historial (Rules/Internet).</div>`;
+    toast("Historial","No se pudo cargar. Revisa conexión y Rules.","bad",4200);
+  }
 }
 
   function renderVisitCard(v){
@@ -2357,86 +2549,115 @@ async function actualizarUsuario(uid, data){
 }
 
   // Click actions
-  document.addEventListener("click", async (e) => {
-    const btn = e.target.closest("[data-act]");
-    if(!btn) return;
+ // ===============================
+// Click actions (GLOBAL)
+// ===============================
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-act]");
+  if (!btn) return;
 
-    const act = btn.dataset.act;
-    const id  = btn.dataset.id;
+  const act = btn.dataset.act;
+  const id  = btn.dataset.id;
 
-    if(act === "visitantes") return goTo(VIEWS.VIS);
-    if(act === "usuarios") return goTo(VIEWS.USERS);
-    if(act === "volverUsuarios") return goTo(VIEWS.DASH);
-    if(act === "loadVisitantes") return await loadVisitantes();
-    if(act === "volverVisitantes") return goTo(VIEWS.DASH);
-    if(act === "volverKPI") return goTo(VIEWS.DASH);
+  // ===============================
+  // Navegación básica
+  // ===============================
+  if (act === "visitantes") return goTo(VIEWS.VIS);
+  if (act === "usuarios") return goTo(VIEWS.USERS);
+  if (act === "kpi") return goTo(VIEWS.KPI);
+  if (act === "historial") return goTo(VIEWS.HIST);
 
-    if(act === "verQR"){
-      await openQrModal({ id, title: "QR de la visita", subtitle: "Guarda o comparte este QR." });
-      return;
-    }
+  if (act === "volverUsuarios") return goTo(VIEWS.DASH);
+  if (act === "volverKPI") return goTo(VIEWS.DASH);
+  if (act === "volverHistorial") return goTo(VIEWS.DASH);
 
-    if(act === "marcarLlegada"){
-      await marcarLlegada(id);
-      return;
-    }
-
-    if(act === "autorizar"){
-      const ok = await requirePin("autorizar la visita");
-      if(!ok) return;
-      await autorizarVisita(id);
-      return;
-    }
-
-    if(act === "rechazar"){
-      if(!confirm("¿Rechazar esta visita? Se desactivará el QR.")) return;
-      const ok = await requirePin("rechazar la visita");
-      if(!ok) return;
-      await rechazarVisita(id);
-      return;
-    }
-
-    if(act === "darAcceso"){
-      const gafete = prompt("No. de gafete:");
-      if(!gafete) return;
-      await darAcceso(id, String(gafete).trim());
-      return;
-    }
-
-    if(act === "darSalida"){
-      const v = getVisibleVisitas(visitasHoy).find(x => x.id === id) || {};
-      const inc = await askIncidenciaSalida({ nombre: v.nombreVisitante, id });
-      if(inc === null) return;
-      await darSalida(id, inc);
-      return;
-    }
-
-    if (act === "editarUsuario") {
-  const uid = btn.dataset.id;
-  const u = usuariosCache.find(x => x.uid === uid);
-
-  if (u) {
-    openEditarUsuario(u);
-  } else {
-    toast("Error", "No se encontró el usuario en memoria.", "bad", 3000);
-  }
-  return;
-}
-
-// ✅ Ver detalle de cita (click en tarjeta)
-  if(act === "verDetalleCita"){
-    const v = visitasHoy.find(x => x.id === id);
-    if(v){
-      openDetalleCitaModal(v);
-    }else{
-      toast("Detalle","No se encontró la cita.","warn",3000);
-    }
+  // ===============================
+  // HISTORIAL
+  // ===============================
+  if (act === "cargarHistorial") {
+    await loadHistorial();
     return;
   }
 
-  });
+  // ===============================
+  // USUARIOS (Admin)
+  // ===============================
+  if (act === "editarUsuario") {
+    const uid = btn.dataset.id;
+    const u = usuariosCache.find(x => x.uid === uid);
+    if (!u) {
+      toast("Error", "No se encontró el usuario.", "bad", 3000);
+      return;
+    }
+    openEditarUsuario(u);
+    return;
+  }
 
-  // ---------- REALTIME HOY ----------
+  // ===============================
+  // DASHBOARD / Citas
+  // ===============================
+  if (act === "verDetalleCita") {
+    const v =
+      visitasHoy.find(x => x.id === id) ||
+      null;
+
+    if (!v) {
+      toast("Detalle", "No se encontró la cita.", "warn", 3000);
+      return;
+    }
+    openDetalleCitaModal(v);
+    return;
+  }
+
+  if (act === "verQR") {
+    await openQrModal({
+      id,
+      title: "QR de la visita",
+      subtitle: "Guarda o comparte este QR."
+    });
+    return;
+  }
+
+  if (act === "marcarLlegada") {
+    await marcarLlegada(id);
+    return;
+  }
+
+  if (act === "autorizar") {
+    const ok = await requirePin("autorizar la visita");
+    if (!ok) return;
+    await autorizarVisita(id);
+    return;
+  }
+
+  if (act === "rechazar") {
+    if (!confirm("¿Rechazar esta visita? Se desactivará el QR.")) return;
+    const ok = await requirePin("rechazar la visita");
+    if (!ok) return;
+    await rechazarVisita(id);
+    return;
+  }
+
+  if (act === "darAcceso") {
+    const gafete = prompt("No. de gafete:");
+    if (!gafete) return;
+    await darAcceso(id, String(gafete).trim());
+    return;
+  }
+
+  if (act === "darSalida") {
+    const v = visitasHoy.find(x => x.id === id) || {};
+    const inc = await askIncidenciaSalida({
+      nombre: v.nombreVisitante,
+      id
+    });
+    if (inc === null) return;
+    await darSalida(id, inc);
+    return;
+  }
+});
+  
+// ---------- REALTIME HOY ----------
 function startListenerHoy(){
   stopListenerHoy();
 
