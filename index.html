@@ -504,7 +504,7 @@ header #btnLogout{
    // Seguridad por rol
    if(String(userRole||'').toLowerCase() === ROLES.ANFITRION){
      // Anfitrión: solo dashboard y (si aplica) autorización en tarjetas; sin escáner/alta/usuarios/nueva cita
-     if(['scan','cita','alta','usuarios'].includes(key)){
+     if(['scan','alta','usuarios'].includes(key)){
        toast('Acceso denegado','Tu rol no permite esa sección.', 'bad', 2800);
        return;
      }
@@ -654,13 +654,11 @@ header #btnLogout{
   function norm(s){
     return String(s ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
+  
+  
   function getVisibleVisitas(list){
-    if(String(userRole||"").toLowerCase() === ROLES.ANFITRION){
-      const me = norm(userProfile?.nombre || "");
-      return (list||[]).filter(v => norm(v?.personaVisita) === me);
-    }
-    return list || [];
-  }
+  return list || [];
+}
 
   // ===== Modales =====
   function askIncidenciaSalida({ nombre, id }){
@@ -1184,11 +1182,7 @@ header #btnLogout{
   // ---------- Nueva Cita (PROGRAMADO) ----------
   function renderNuevaCita(){
   try{ setActiveSb("cita"); }catch{}
-    if(userRole === ROLES.ANFITRION){
-      toast("No permitido","El rol Anfitrión no crea citas.", "warn", 2600);
-      return goTo(VIEWS.DASH);
-    }
-
+    
     const todayISO = new Date().toISOString().slice(0,10);
     appEl.innerHTML = `
       <div class="card" style="max-width:640px;margin:20px auto;">
@@ -1200,8 +1194,19 @@ header #btnLogout{
           <button class="secondary" id="btnBackCita">Volver</button>
         </div>
 
-        <label>Nombre completo</label>
-        <input id="cNombre" placeholder="Nombre del visitante" />
+        <label>Nombre del visitante (individual)</label>
+<input id="cNombre" placeholder="Opcional si es grupal" />
+
+<label>Lista de visitantes (cita grupal)</label>
+<textarea 
+  id="cGrupo"
+  placeholder="Un visitante por línea
+Ej:
+Juan Pérez
+Ana López
+Carlos Gómez"
+  style="min-height:120px;"
+></textarea>
 
         <label>Empresa</label>
         <input id="cEmpresa" placeholder="Empresa" />
@@ -1272,52 +1277,98 @@ header #btnLogout{
     const fecha = ($("#cFecha").value || "").trim();
     const hora = ($("#cHora").value || "").trim();
 
-    if(!nombre || !empresa || !motivo || !persona || !fecha || !hora){
-      toast("Faltan datos","Completa todos los campos.", "warn", 3000);
-      return;
+    if((!nombre && !grupoTxt) || !empresa || !motivo || !persona || !fecha || !hora){
+    toast("Faltan datos","Ingresa al menos un visitante.", "warn", 3000);
+    return;
     }
 
-    const id = "VIS-" + Date.now();
-    const programadaTs = new Date(`${fecha}T${hora}:00`).getTime();
+    // Lista de nombres: grupal o individual
+const grupoTxt = ($("#cGrupo").value || "").trim();
+
+const nombres = grupoTxt
+  ? grupoTxt.split(/\n+/).map(n => n.trim()).filter(Boolean)
+  : [nombre];
+
+// Validación final
+if (!nombres.length) {
+  toast("Faltan datos", "Ingresa al menos un visitante.", "warn", 3000);
+  return;
+}
+
+// Timestamps
+const programadaTs = new Date(`${fecha}T${hora}:00`).getTime();
+
+// ID de grupo (solo si son varios)
+const groupId = nombres.length > 1 ? "GRP-" + Date.now() : null;
+
+try {
+  const { db, doc, setDoc } = window.__FB__;
+
+  for (const nom of nombres) {
+
+    const id = "VIS-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
 
     const data = {
       id,
+      groupId,
+
       tipo: "visitante",
       origen: "app",
-      nombreVisitante: nombre,
+
+      nombreVisitante: nom,
       empresa,
       motivoVisita: motivo,
       personaVisita: persona,
+
       fechaProgramada: fecha,
       horaProgramada: hora,
       programadaTs,
+
       status: Status.PROGRAMADO,
       qrActivo: true,
+
       llegadaTs: null,
       entradaTs: null,
       salidaTs: null,
+
       autorizadoPor: null,
       autorizadoTs: null,
+
       createdTs: Date.now(),
-      updatedTs: Date.now()
+      updatedTs: Date.now(),
+
+      anfitrionUid: currentUser.uid,
+      anfitrionNombre: userProfile.nombre,
     };
 
-    try{
-      const { db, doc, setDoc } = window.__FB__;
-      await setDoc(doc(db, "visitas", id), data);
-      toast("Cita creada", "Quedó en PROGRAMADO.", "ok", 2400);
+    await setDoc(doc(db, "visitas", id), data);
 
+    // ✅ Si es visita individual, mostramos QR
+    if (!groupId) {
       await openQrModal({
         id,
         title: "Cita programada · QR generado",
         subtitle: "Guarda o comparte este QR con el visitante."
       });
-
-      goTo(VIEWS.DASH);
-    }catch(e){
-      console.error(e);
-      toast("Error", "No se pudo crear la cita (rules/conexión).", "bad", 4200);
     }
+  }
+
+  toast(
+    "Cita creada",
+    groupId
+      ? "Se crearon todas las visitas del grupo."
+      : "Quedó en PROGRAMADO.",
+    "ok",
+    2600
+  );
+
+  goTo(VIEWS.DASH);
+
+} catch (e) {
+  console.error(e);
+  toast("Error", "No se pudo crear la cita (rules/conexión).", "bad", 4200);
+}
+    
   }
 
   // ---------- Visitantes (Tabla) ----------
@@ -1843,34 +1894,45 @@ header #btnLogout{
   });
 
   // ---------- REALTIME HOY ----------
-  function startListenerHoy(){
-    stopListenerHoy();
-    const { db, collection, query, where, orderBy, limit, onSnapshot } = window.__FB__;
-    const { start, end } = dayBounds(new Date());
+ function startListenerHoy(){
+  stopListenerHoy();
 
-    const q = query(
-      collection(db, "visitas"),
-      where("createdTs", ">=", start),
-      where("createdTs", "<", end),
-      orderBy("createdTs", "desc"),
-      limit(300)
-    );
+  const { db, collection, query, where, orderBy, limit, onSnapshot } = window.__FB__;
+  const { start, end } = dayBounds(new Date());
 
-    unsubscribeHoy = onSnapshot(q, (snap) => {
+  // ✅ MISMO QUERY PARA TODOS LOS ROLES
+  const q = query(
+    collection(db, "visitas"),
+    where("createdTs", ">=", start),
+    where("createdTs", "<", end),
+    orderBy("createdTs", "desc"),
+    limit(300)
+  );
+
+  unsubscribeHoy = onSnapshot(
+    q,
+    (snap) => {
       const arr = [];
       snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
-      visitasHoy = arr.filter(x => x.tipo === "visitante");
+      visitasHoy = arr.filter(v => v.tipo === "visitante");
 
-      if(view === VIEWS.DASH) renderDashboard();
-      // En otras vistas no re-render para no molestar
-    }, (err) => {
-      console.error(err);
-      toast("Realtime","No se pudo escuchar cambios (rules/conexión).", "bad", 4200);
-      renderDashboard();
-    });
-  }
+      console.log("VISITAS CARGADAS:", visitasHoy.length);
 
-  function stopListenerHoy(){
+      if (view === VIEWS.DASH) renderDashboard();
+    },
+    (err) => {
+      console.error("REALTIME ERROR:", err);
+      toast(
+        "Realtime",
+        "No se pudo escuchar cambios (JS).",
+        "bad",
+        4200
+      );
+    }
+  );
+}
+  
+function stopListenerHoy(){
     if(unsubscribeHoy){
       try{ unsubscribeHoy(); }catch{}
       unsubscribeHoy = null;
