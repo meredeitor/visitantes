@@ -1449,6 +1449,7 @@ async function loadHistorial(){
             <th>Visita a</th>
             <th>Estatus</th>
             <th>Espera (min)</th>
+            <th>Ver QR</th>
           </tr>
         </thead>
         <tbody>
@@ -1467,7 +1468,17 @@ async function loadHistorial(){
                 <td>${esc(v.empresa || "-")}</td>
                 <td>${esc(v.personaVisita || "-")}</td>
                 <td>${badge(v.status)}</td>
-                <td>${esc(espera)}</td>
+                <td>${esc(espera)}</td>         
+                <td>${v.qrActivo
+                  ? `<button class="secondary"
+                  data-act="verQR"
+                  data-id="${esc(v.id)}">
+                  Ver QR
+               </button>`
+            : `<span class="muted">N/A</span>`
+          }
+        </td>
+
               </tr>
             `;
           }).join("")}
