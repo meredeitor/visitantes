@@ -1307,10 +1307,17 @@ function renderKPI(){
 }
 
 function renderHistorial(){
-  try{ setActiveSb("historial"); }catch{}
+  // Marcar activo el sidebar (si existe)
+  try { setActiveSb("historial"); } catch(e){}
 
-  if(userRole !== ROLES.ADMIN){
-    toast("Acceso denegado","Solo ADMIN puede consultar el historial.","bad",3000);
+  // ✅ Acceso permitido SOLO a Admin y Anfitrión
+  if (userRole !== ROLES.ADMIN && userRole !== ROLES.ANFITRION) {
+    toast(
+      "Acceso denegado",
+      "No tienes permiso para consultar el historial.",
+      "bad",
+      3000
+    );
     return goTo(VIEWS.DASH);
   }
 
@@ -1318,30 +1325,61 @@ function renderHistorial(){
 
   appEl.innerHTML = `
     <div class="card">
-      <div class="row" style="justify-content:space-between;">
+
+      <!-- Encabezado -->
+      <div class="row" style="justify-content:space-between; align-items:center;">
         <div>
           <h2 style="margin:0 0 4px;">Historial de Visitas</h2>
-          <div class="muted">Consulta por día (no realtime)</div>
+          <div class="muted">
+            Consulta de citas por día
+            ${userRole === ROLES.ANFITRION
+              ? '· <b>Modo consulta (Anfitrión)</b>'
+              : ''}
+          </div>
         </div>
-        <button class="secondary" data-act="volverHistorial">Volver</button>
+
+        <button class="secondary" data-act="volverHistorial">
+          Volver
+        </button>
       </div>
 
       <div class="divider"></div>
 
+      <!-- Filtros -->
       <div class="row" style="gap:12px; flex-wrap:wrap;">
         <div>
           <label>Fecha</label>
-          <input type="date" id="histFecha" value="${todayISO}">
+          <input
+            type="date"
+            id="histFecha"
+            value="${todayISO}"
+          >
         </div>
+
         <div style="align-self:flex-end;">
-          <button class="secondary" data-act="cargarHistorial">Cargar</button>
+          <button
+            class="secondary"
+            data-act="cargarHistorial">
+            Cargar
+          </button>
         </div>
       </div>
 
       <div class="divider"></div>
 
-      <div id="histKPIs"></div>
-      <div id="histTabla" style="margin-top:12px;"></div>
+      <!-- KPIs -->
+      <div id="histKPIs">
+        <div class="muted">
+          Selecciona una fecha y presiona <b>Cargar</b> para ver el resumen y la tabla.
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div
+        id="histTabla"
+        style="margin-top:12px;">
+      </div>
+
     </div>
   `;
 }
