@@ -2368,10 +2368,31 @@ async function loadUsuarios() {
   async function manualById(){
     const id = prompt("Ingresa el ID (del QR), ejemplo: VIS-1713...");
     if(!id) return;
-    await handleScan(String(id).trim());
+    await handleScan(id);
   }
 
-  async function handleScan(id){
+  function getVisitIdFromQr(decodedText){
+    const raw = String(decodedText || "").trim();
+    if(!raw) return "";
+
+    try{
+      const url = new URL(raw);
+      const hashId = url.hash.replace(/^#\/?/, "").split("/").filter(Boolean).pop();
+      return (
+        url.searchParams.get("id") ||
+        url.searchParams.get("visita") ||
+        url.searchParams.get("visitaId") ||
+        hashId ||
+        url.pathname.split("/").filter(Boolean).pop() ||
+        raw
+      ).trim();
+    }catch{
+      return raw;
+    }
+  }
+
+  async function handleScan(decodedText){
+    const id = getVisitIdFromQr(decodedText);
     if(!id){
       toast("QR","Código vacío.", "warn");
       return goTo(VIEWS.DASH);
@@ -2404,11 +2425,12 @@ async function loadUsuarios() {
       return goTo(VIEWS.DASH);
     }
 
-    // Bloqueos por estatus
     if(v.status === Status.PROGRAMADO){
-      toast("Cita programada","Primero marca llegada (PROGRAMADO → LLEGADO).", "warn", 3600);
-      return goTo(VIEWS.DASH);
+      await marcarLlegada(v.id);
+      return;
     }
+
+    // Bloqueos por estatus
     if(v.status === Status.AUTORIZACION){
       toast("Pendiente","Aún no está autorizada.", "warn", 3200);
       return goTo(VIEWS.DASH);
