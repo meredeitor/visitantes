@@ -95,11 +95,13 @@
     }
   </style>
 
-  <!-- Firebase (solo Firestore, público) -->
+  <!-- Firebase (solo Firestore, pÃºblico) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, doc, setDoc, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously }
+      from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA0mn8aVRKPpF-yiNVTb2FKqyhHg3lQmpg",
@@ -112,7 +114,8 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    window.DB = { db, doc, setDoc, serverTimestamp };
+    const auth = getAuth(app);
+    window.DB = { db, auth, doc, setDoc, serverTimestamp, signInAnonymously };
   </script>
 </head>
 
@@ -164,6 +167,43 @@
   </div>
 
   <script>
+        function waitForFirebase(){
+      return new Promise((resolve, reject) => {
+        const started = Date.now();
+        const timer = setInterval(() => {
+          if(window.DB?.db && window.DB?.auth){
+            clearInterval(timer);
+            resolve(window.DB);
+            return;
+          }
+          if(Date.now() - started > 8000){
+            clearInterval(timer);
+            reject(new Error("Firebase no terminó de cargar"));
+          }
+        }, 50);
+      });
+    }
+
+    async function ensureKioskSession(){
+      const DB = await waitForFirebase();
+      if(DB.auth.currentUser) return DB.auth.currentUser;
+      const cred = await DB.signInAnonymously(DB.auth);
+      return cred.user;
+    }
+
+    function todayISO(ts){
+      const d = new Date(ts);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function timeHM(ts){
+      const d = new Date(ts);
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+
     async function registrar(){
       const btn = document.getElementById("btnRegistrar");
       if(btn) btn.disabled = true;
@@ -198,15 +238,27 @@
         llegadaTs: null,
         createdTs: now,
         updatedTs: now,
+        fechaProgramada: todayISO(now),
+        horaProgramada: timeHM(now),
+        programadaTs: now,
+        autorizadoTs: null,
+        autorizadoPor: "",
         serverTs: window.DB.serverTimestamp()
       };
 
       try{
+        await ensureKioskSession();
         await window.DB.setDoc(window.DB.doc(window.DB.db, "visitas", id), data);
         renderResultado(data);
       }catch(e){
         console.error(e);
-        alert("No se pudo registrar. Revisa conexión.");
+        const code = e?.code || "";
+        const msg = code === "permission-denied"
+          ? "No se pudo registrar: Firestore no permite este registro desde kiosko. Revisa reglas o habilita Auth anónimo."
+          : code === "auth/admin-restricted-operation"
+            ? "No se pudo registrar: habilita el inicio de sesión anónimo en Firebase Authentication."
+            : "No se pudo registrar. Revisa conexión.";
+        alert(msg);
         if(btn) btn.disabled = false;
       }
     }
@@ -241,7 +293,7 @@
           </div>
 
           <p class="muted" style="text-align:center;margin-top:10px">
-            Conserva este QR. Cuando guardia autorice tu entrada, podrán escanearlo para registrar <b>entrada/salida</b>.
+             Conserva este QR. Cuando guardia autorice tu entrada, podrán escanearlo para registrar <b>entrada/salida</b>.
           </p>
         </div>
       `;
@@ -289,8 +341,8 @@
       window.addEventListener("load", () => {
         navigator.serviceWorker
           .register("./service-worker.js")
-          .then(() => console.log("✅ Service Worker registrado"))
-          .catch(err => console.error("❌ SW error", err));
+          .then(() => console.log("âœ… Service Worker registrado"))
+          .catch(err => console.error("âŒ SW error", err));
       });
     }
   </script>
