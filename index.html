@@ -615,6 +615,8 @@ header #btnLogout{
   let userRole = null;
   let unsubscribeHoy = null;
   let visitasHoy = [];
+  let visitasStatusPrev = new Map();
+  let realtimePrimeraCarga = true;
   let scanner = null;
 
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -635,6 +637,78 @@ header #btnLogout{
     `;
     toasts.appendChild(el);
     setTimeout(() => el.remove(), ttl);
+  }
+
+  function statusLabel(status){
+    const s = String(status || "").toLowerCase();
+    if(s === Status.PROGRAMADO) return "PROGRAMADO";
+    if(s === Status.AUTORIZACION) return "PENDIENTE AUTORIZACION";
+    if(s === Status.RECHAZADO) return "RECHAZADO";
+    if(s === Status.LLEGADO) return "LLEGADO";
+    if(s === Status.DENTRO) return "DENTRO";
+    if(s === Status.FINALIZADO) return "FINALIZADO";
+    return String(status || "SIN ESTATUS").toUpperCase();
+  }
+
+  function visitTitle(v){
+    return v?.nombreVisitante || v?.empresa || v?.id || "Visitante";
+  }
+
+  function notifyLive(title, msg, type="info"){
+    toast(title, msg, type, 5200);
+
+    const originalTitle = document.title;
+    document.title = `Nuevo aviso - ${originalTitle}`;
+    setTimeout(() => {
+      if(document.title.startsWith("Nuevo aviso - ")){
+        document.title = originalTitle;
+      }
+    }, 4500);
+  }
+
+  function notifyRealtimeChanges(nextList){
+    const nextMap = new Map();
+
+    nextList.forEach(v => {
+      nextMap.set(v.id, {
+        status: v.status || "",
+        nombreVisitante: v.nombreVisitante || "",
+        empresa: v.empresa || "",
+        origen: v.origen || ""
+      });
+    });
+
+    if(realtimePrimeraCarga){
+      visitasStatusPrev = nextMap;
+      realtimePrimeraCarga = false;
+      return;
+    }
+
+    nextMap.forEach((next, id) => {
+      const prev = visitasStatusPrev.get(id);
+
+      if(!prev){
+        const tipo = next.origen === "kiosk" ? "warn" : "info";
+        notifyLive("Nueva visita", `${visitTitle({ ...next, id })} está en ${statusLabel(next.status)}.`, tipo);
+        return;
+      }
+
+      if(prev.status !== next.status){
+        const tipo =
+          next.status === Status.RECHAZADO ? "bad" :
+          next.status === Status.DENTRO || next.status === Status.FINALIZADO ? "ok" :
+          next.status === Status.AUTORIZACION || next.status === Status.LLEGADO ? "warn" :
+          "info";
+
+        notifyLive(
+          "Cambio de estatus",
+          `${visitTitle({ ...next, id })}: ${statusLabel(prev.status)} -> ${statusLabel(next.status)}.`,
+          tipo
+        );
+      }
+    });
+
+    visitasStatusPrev = nextMap;
   }
 
   function goTo(next){
@@ -1856,6 +1930,7 @@ Carlos Gómez"
     const persona = ($("#cPersona").value || "").trim();
     const fecha = ($("#cFecha").value || "").trim();
     const hora = ($("#cHora").value || "").trim();
+    const grupoTxt = ($("#cGrupo").value || "").trim();
 
     if((!nombre && !grupoTxt) || !empresa || !motivo || !persona || !fecha || !hora){
     toast("Faltan datos","Ingresa al menos un visitante.", "warn", 3000);
@@ -1863,8 +1938,6 @@ Carlos Gómez"
     }
 
     // Lista de nombres: grupal o individual
-const grupoTxt = ($("#cGrupo").value || "").trim();
-
 const nombres = grupoTxt
   ? grupoTxt.split(/\n+/).map(n => n.trim()).filter(Boolean)
   : [nombre];
@@ -2391,6 +2464,29 @@ async function loadUsuarios() {
     }
   }
 
+  async function findVisitByQrId(id){
+    const { db, doc, getDoc, collection, query, where, getDocs, limit } = window.__FB__;
+
+    let snap = await getDoc(doc(db, "visitas", id));
+    if(snap.exists()) return snap;
+
+    const byField = await getDocs(query(
+      collection(db, "visitas"),
+      where("id", "==", id),
+      limit(1)
+    ));
+    if(!byField.empty) return byField.docs[0];
+
+    const byGroup = await getDocs(query(
+      collection(db, "visitas"),
+      where("groupId", "==", id),
+      limit(1)
+    ));
+    if(!byGroup.empty) return byGroup.docs[0];
+
+    return null;
+  }
+
   async function handleScan(decodedText){
     const id = getVisitIdFromQr(decodedText);
     if(!id){
@@ -2398,18 +2494,17 @@ async function loadUsuarios() {
       return goTo(VIEWS.DASH);
     }
 
-    const { db, doc, getDoc } = window.__FB__;
     let snap;
     try{
-      snap = await getDoc(doc(db, "visitas", id));
+      snap = await findVisitByQrId(id);
     }catch(e){
       console.error(e);
       toast("Firestore","No se pudo consultar (conexión/rules).", "bad", 4200);
       return goTo(VIEWS.DASH);
     }
 
-    if(!snap.exists()){
-      toast("QR inválido","No existe ese ID en la base.", "bad", 3200);
+    if(!snap || !snap.exists()){
+      toast("QR inválido",`No existe ese ID en la base: ${id}`, "bad", 4200);
       return goTo(VIEWS.DASH);
     }
 
@@ -2761,6 +2856,7 @@ function startListenerHoy(){
 
       // ✅ Solo tipo visitante
       visitasHoy = arr.filter(v => v.tipo === "visitante");
+      notifyRealtimeChanges(visitasHoy);
 
       console.log(
         "VISITAS DEL DASHBOARD:",
@@ -2787,6 +2883,8 @@ function stopListenerHoy(){
       try{ unsubscribeHoy(); }catch{}
       unsubscribeHoy = null;
     }
+    visitasStatusPrev = new Map();
+    realtimePrimeraCarga = true;
   }
 
   // ---------- INIT: Auth observer ----------
