@@ -112,7 +112,7 @@
       appId: "1:697592280672:web:8824bdd0488cf10bd77505"
     };
 
-    const app = initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig, "KioskApp");
     const db = getFirestore(app);
     const auth = getAuth(app);
     window.DB = { db, auth, doc, setDoc, serverTimestamp, signInAnonymously };
@@ -186,7 +186,7 @@
 
     async function ensureKioskSession(){
       const DB = await waitForFirebase();
-      if(DB.auth.currentUser) return DB.auth.currentUser;
+      if(DB.auth.currentUser?.isAnonymous) return DB.auth.currentUser;
       const cred = await DB.signInAnonymously(DB.auth);
       return cred.user;
     }
@@ -219,7 +219,8 @@
       }
 
       const now = Date.now();
-      const id = "VIS-" + now;
+      const suffix = crypto?.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.floor(Math.random() * 1000000);
+      const id = `VIS-${now}-${suffix}`;
 
       const data = {
         id,
