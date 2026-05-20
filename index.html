@@ -385,9 +385,10 @@ header #btnLogout{
     // App secundaria para crear usuarios SIN tumbar la sesión del admin
     const app2 = initializeApp(firebaseConfig, "Secondary");
     const auth2 = getAuth(app2);
+    const db2 = getFirestore(app2);
 
     window.__FB__ = {
-      auth, auth2, db,
+      auth, auth2, db, db2,
       signInWithEmailAndPassword, onAuthStateChanged, signOut,
       createUserWithEmailAndPassword,
       collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot
@@ -979,19 +980,20 @@ header #btnLogout{
     appEl.innerHTML = `
       <div class="card" style="max-width:420px;margin:30px auto;">
         <h2 style="margin:0 0 6px;">Iniciar sesión</h2>
-        <div class="muted">Guardia / Admin / Anfitrión (Email y contraseña)</div>
+        <div class="muted">Roles: Guardia / Admin / Anfitrión Requiere:(Email y contraseña)</div>
         <label>Correo</label>
         <input id="email" type="email" autocomplete="off" />
         <label>Contraseña</label>
         <input id="pass" type="password" />
         <div style="height:12px"></div>
         <div class="row">
-          <button id="btnLogin">Entrar</button>
+            <button id="btnLogin">Entrar</button>
+            <button class="secondary" id="btnRegistro">Crear cuenta</button>
         </div>
         <div style="height:12px"></div>
-        <div class="muted">Cámara: usar <b>https</b> o <b>localhost</b>.</div>
       </div>
     `;
+    $("#btnRegistro").onclick = abrirRegistro;
     $("#btnLogin").onclick = async () => {
       const email = ($("#email").value || "").trim();
       const pass  = ($("#pass").value  || "").trim();
@@ -1005,6 +1007,86 @@ header #btnLogout{
       }
     };
   }
+
+function abrirRegistro(){
+  const back = document.createElement("div");
+  back.className = "modal-backdrop";
+
+  back.innerHTML = `
+    <div class="modal">
+      <h3>Crear cuenta</h3>
+
+      <label>Nombre</label>
+      <input id="rNombre">
+
+      <label>Correo</label>
+      <input id="rEmail">
+
+      <label>Contraseña</label>
+      <input id="rPass" type="password">
+
+       <label>PIN</label>
+      <input id="rPin" type="password" maxlength="6">
+
+      <div style="height:12px"></div>
+
+      <div class="row" style="justify-content:flex-end;">
+        <button class="secondary" id="btnCancelReg">Cancelar</button>
+        <button class="ok" id="btnCrearReg">Crear</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(back);
+
+  back.querySelector("#btnCancelReg").onclick = () => back.remove();
+
+  back.querySelector("#btnCrearReg").onclick = crearCuentaUsuario;
+}
+
+async function crearCuentaUsuario(){
+  const nombre = document.getElementById("rNombre").value.trim();
+  const email = document.getElementById("rEmail").value.trim();
+  const pass = document.getElementById("rPass").value.trim();
+  const pin = document.getElementById("rPin").value.trim();
+
+  if(!nombre || !email || !pass || !pin){
+    toast("Faltan datos","Completa todos los campos","warn");
+    return;
+  }
+
+  try{
+    const { auth2, createUserWithEmailAndPassword, signOut, db, doc, setDoc } = window.__FB__;
+
+    const cred = await createUserWithEmailAndPassword(auth2, email, pass);
+    const uid = cred.user.uid;
+
+    // 🔴 IMPORTANTE: queda pendiente de aprobación
+   
+    const { db2 } = window.__FB__;
+
+    await setDoc(doc(db2, "users", uid), {
+
+      uid,
+      nombre,
+      email,
+      pinAutorizacion: pin,
+      rol: "anfitrion",     // default
+      activo: false,        // 🔴 BLOQUEADO hasta aprobación
+      aprobado: false,      // 🔴 NUEVO CAMPO
+      createdTs: Date.now()
+    });
+
+    await signOut(auth2);
+
+    toast("Cuenta creada","Esperando autorización del administrador","ok",4000);
+    document.body.querySelector(".modal-backdrop").remove();
+
+  }catch(e){
+    console.error(e);
+    toast("Error","No se pudo crear la cuenta","bad",4000);
+  }
+}
 
  function renderDashboard(){
   // ✅ Fecha de vista (Dashboard)
@@ -1879,15 +1961,104 @@ Carlos Gómez"
        <label>Persona a quien visita</label>
 <select id="cPersona">
   <option value="">Seleccione…</option>
-  <option>Jaqueline Gómez</option>
-  <option>Julia Saralegui</option>
-  <option>Mayela Reynaga</option>
-  <option>Jorge Olvera</option>
-  <option>Yolanda Hurtado</option>
-  <option>Paola Palomares</option>
-  <option>Princess Alvarez</option>
-  <option>Servicio médico</option>
+  <optgroup label="DOH">
+    <option>Mayela Reynaga</option>
+    <option>Sara Guereca</option>
+    <option>Princess Alvarez</option>
+    <option>Paola Palomares</option>
+    <option>Anaís Rojas</option>
+  </optgroup>
+
+  <optgroup label="SYS">
+    <option>Miriam Landeros</option>
+    <option>Jesus Mendoza</option>
+  </optgroup>
+
+  <optgroup label="Desarrollo">
+    <option>Ángel Reyes</option>
+    <option>Montserrat Campos</option>
+    <option>Fernanda Ortiz</option>
+    <option>Mario Barrios</option>
+    <option>Jaime Hernández</option>
+    <option>Antonio Gutiérrez</option>
+  </optgroup>
+
+  <optgroup label="Ventas">
+    <option>Maru Medina</option>
+    <option>Alejandro Herrera</option>
+    <option>Javier Sánchez</option>
+    <option>Ivonne Soto</option>
+    <option>Joselyn Paz</option>
+    <option>Juana Ávila</option>
+    <option>Marcela Chacón</option>
+    <option>Adaneli Aguilera</option>
+    <option>Andrea González</option>
+  </optgroup>
+
+  <optgroup label="TI">
+    <option>Soraya Rodríguez</option>
+    <option>Diego Guillen</option>
+  </optgroup>
+
+  <optgroup label="Mercadotecnia">
+    <option>Alfredo García</option>
+    <option>Edgar Cruz</option>
+    <option>Nathalie Hernández</option>
+    <option>Renata Díaz</option>
+  </optgroup>
+
+  <optgroup label="Contabilidad">
+    <option>Daniela Sustaita</option>
+    <option>Uriel Reyes</option>
+    <option>Yolanda Hurtado</option>
+  </optgroup>
+
+  <optgroup label="Calidad">
+    <option>Sergio Palomares</option>
+    <option>Daniel López</option>
+    <option>César Reyes</option>
+    <option>Rafael Pichardo</option>
+    <option>Ricardo Rivera</option>
+  </optgroup>
+
+  <optgroup label="Compras">
+    <option>Jaqueline Gómez</option>
+    <option>Tisbet González</option>
+    <option>Miriam García</option>
+    <option>Mónica Torres</option>
+    <option>Hugo Reyes</option>
+  </optgroup>
+
+  <optgroup label="Logística">
+    <option>Cristóbal Gutiérrez</option>
+    <option>Wendy Parada</option>
+    <option>Héctor Ríos</option>
+    <option>Sergio Sánchez</option>
+  </optgroup>
+
+  <optgroup label="Mantenimiento">
+    <option>Ambrosio Becerra</option>
+    <option>Luis Salas</option>
+    <option>Daniel García</option>
+    <option>Refugio Araujo</option>
+    <option>Oscar Sánchez</option>
+  </optgroup>
+
+  <optgroup label="Almacén">
+    <option>Jesús Rodríguez</option>
+  </optgroup>
+
+  <optgroup label="Contraloría">
+    <option>Martha Rodríguez</option>
+  </optgroup>
+
+  <optgroup label="Dirección General">
+    <option>Luis Torres</option>
+    <option>María Torres</option>
+  </optgroup>
+
 </select>
+
 
         <div class="two">
           <div>
@@ -2338,15 +2509,20 @@ async function loadUsuarios() {
           <td>${esc(u.email || '-')}</td>
           <td>${esc(String(u.rol || '-').toUpperCase())}</td>
           <td>${u.pinAutorizacion ? '●●●●' : '-'}</td>
-          <td>${u.activo === false ? 'No' : 'Sí'}</td>
-          <td>
-            <button
-              class="secondary"
-              data-act="editarUsuario"
-              data-id="${esc(u.uid)}">
-              Editar
-            </button>
-          </td>
+          <td>${u.activo === false ? 'No' : 'Sí'}</td>   
+<td>
+  ${
+    u.aprobado === false
+    ? `<button class="ok" data-act="aprobarUsuario" data-id="${u.uid}">Aprobar</button>`
+    : `<span class="pill"><span class="dot ok"></span>Aprobado</span>`
+  }
+
+  <button class="secondary"
+    data-act="editarUsuario"
+    data-id="${u.uid}">
+    Editar
+  </button>
+</td>
         </tr>
       `);
     });
@@ -2715,6 +2891,25 @@ async function actualizarUsuario(uid, data){
   }
 }
 
+async function aprobarUsuario(uid){
+  const { db, doc, updateDoc } = window.__FB__;
+
+  try{
+    await updateDoc(doc(db, "users", uid), {
+      aprobado: true,
+      activo: true,
+      aprobadoTs: Date.now()
+    });
+
+    toast("Usuario aprobado","Ya puede iniciar sesión","ok");
+    loadUsuarios();
+
+  }catch(e){
+    console.error(e);
+    toast("Error","No se pudo aprobar","bad");
+  }
+}
+
   // Click actions
  // ===============================
 // Click actions (GLOBAL)
@@ -2729,6 +2924,11 @@ document.addEventListener("click", async (e) => {
   // ===============================
   // Navegación básica
   // ===============================
+  
+ if (act === "aprobarUsuario") {
+    await aprobarUsuario(id);
+    return;
+  }
   if (act === "visitantes") return goTo(VIEWS.VIS);
   if (act === "usuarios") return goTo(VIEWS.USERS);
   if (act === "kpi") return goTo(VIEWS.KPI);
@@ -2894,49 +3094,53 @@ function stopListenerHoy(){
       const { auth, onAuthStateChanged, signOut } = window.__FB__;
 
       onAuthStateChanged(auth, async (user) => {
-        currentUser = user || null;
+  currentUser = user || null;
 
-        if(!currentUser){
-          userProfile = null;
-          userRole = null;
-          stopScanner();
-          stopListenerHoy();
-          paintUser();
-          return goTo(VIEWS.LOGIN);
-        }
+  if(!currentUser){
+    userProfile = null;
+    userRole = null;
+    stopScanner();
+    stopListenerHoy();
+    paintUser();
+    return goTo(VIEWS.LOGIN);
+  }
 
-        try{
-          userProfile = await loadUserProfile(currentUser.uid);
-          if(!userProfile){
-            toast("Acceso bloqueado","Tu cuenta no tiene rol asignado en /users.", "bad", 5200);
-            await signOut(auth);
-            return;
-          }
-          if(userProfile.activo === false){
-            toast("Acceso bloqueado","Tu cuenta está desactivada.", "bad", 5200);
-            await signOut(auth);
-            return;
-          }
+  try {
+    userProfile = await loadUserProfile(currentUser.uid);
+  } catch (e) {
+    console.log("Error cargando perfil:", e);
+    userProfile = null;
+  }
 
-          userRole = String(userProfile.rol || "").toLowerCase();
-          if(userRole !== ROLES.ADMIN && userRole !== ROLES.GUARDIA && userRole !== ROLES.ANFITRION){
-            toast("Acceso bloqueado","Rol inválido en /users.", "bad", 5200);
-            await signOut(auth);
-            return;
-          }
+  // 🔴 SI NO EXISTE PERFIL
+  if (!userProfile) {
+    toast("Pendiente", "Tu cuenta aún no está configurada.", "warn", 4000);
+    await signOut(auth);
+    return;
+  }
 
-          paintUser();
-          toast("Sesión activa", "Bienvenido(a).", "ok", 1600);
-          startListenerHoy();
-          return goTo(VIEWS.DASH);
+  // 🔴 SI NO ESTÁ APROBADO
+  if (userProfile.aprobado === false) {
+    toast("Pendiente", "Tu cuenta está en revisión.", "warn", 4000);
+    await signOut(auth);
+    return;
+  }
 
-        }catch(e){
-          console.error(e);
-          toast("Error", "No se pudo validar tu perfil en /users.", "bad", 5200);
-          await signOut(auth);
-        }
-      });
-    }
+  // 🔴 SI ESTÁ BLOQUEADO
+  if (userProfile.activo === false) {
+    toast("Bloqueado", "Tu cuenta está desactivada.", "bad", 4000);
+    await signOut(auth);
+    return;
+  }
+
+  // ✅ TODO BIEN → ENTRAR
+  userRole = userProfile.rol;
+
+  paintUser();
+  startListenerHoy();
+  goTo(VIEWS.DASH);
+});
+       }
   }, 50);
 
 })();
