@@ -131,13 +131,25 @@
       <label>Nombre completo</label>
       <input id="nombre">
 
-      <label>Empresa</label>
-      <input id="empresa">
+       <label>Empresa</label>
+        <input id="cEmpresa" placeholder="Empresa" />
 
-      <label>Motivo de la visita</label>
-      <select id="cPersona">
+        <label>Motivo de la visita</label>
+        <select id="cMotivo">
+          <option value="">Seleccione…</option>
+          <option>Entrega</option>
+          <option>Visita</option>
+          <option>Entrevista</option>
+          <option>Junta</option>
+          <option>Servicio</option>
+          <option>Pago</option>
+          <option>Exámen médico</option>
+          <option>Otro</option>
+        </select>
+
+       <label>Persona a quien visita</label>
+<select id="cPersona">
   <option value="">Seleccione…</option>
-  
   <optgroup label="DOH">
     <option>Mayela Reynaga</option>
     <option>Sara Guereca</option>
@@ -151,11 +163,6 @@
     <option>Jesus Mendoza</option>
   </optgroup>
 
-  <optgroup label="Servicio Medico">
-    <option>Lilia Blancarte</option>
-    <option>Nancy Villalpando</option>
-  </optgroup>
-        
   <optgroup label="Desarrollo">
     <option>Ángel Reyes</option>
     <option>Montserrat Campos</option>
@@ -189,10 +196,6 @@
     <option>Renata Díaz</option>
   </optgroup>
 
-  <optgroup label="Finanzas">
-    <option>Jorge Olvera</option>
-  </optgroup>
-        
   <optgroup label="Contabilidad">
     <option>Daniela Sustaita</option>
     <option>Uriel Reyes</option>
@@ -243,7 +246,7 @@
     <option>María Torres</option>
   </optgroup>
 
-      </select>
+</select>
 
       <button id="btnRegistrar" onclick="registrar()">Registrar</button>
     </div> 
