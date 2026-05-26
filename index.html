@@ -52,18 +52,22 @@
     }
     .two{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .three{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-    .five{ display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; }
-   /* Pantallas medianas */
+    .five{
+  display:grid;
+  grid-template-columns: repeat(5, minmax(237px, 1fr));
+  gap:12px;
+}
+      /* Pantallas medianas */
 @media (max-width:1100px){
   .five{
-    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    grid-template-columns: repeat(3, minmax(237px, 1fr));
   }
 }
 
 /* Tablet / 720px */
 @media (max-width:720px){
   .five{
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
   }
 }
 
@@ -354,6 +358,51 @@ header #btnLogout{
 }
 .kpi-metric b{ font-size:18px; display:block; }
 .kpi-metric span{ color:#64748b; font-size:12px; }
+
+.kpi {
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,.08);
+  box-shadow: 0 4px 8px rgba(2,6,23,.05);
+}
+
+
+.kpi .title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #010101;
+  display: flex;
+  align-items: center;
+}
+
+.kpi .big {
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+
+.kpi.info {
+  background: #f0f9ff;
+  border-top: 3px solid #0284c7;
+}
+
+.kpi.warn {
+  background: #fffbeb;
+  border-top: 3px solid #d97706;
+}
+
+.kpi.ok {
+  background: #f0fdf4;
+  border-top: 3px solid #16a34a;
+}
+
+.kpi.muted {
+  background: #f8fafc;
+  border-top: 3px solid #94a3b8;
+}
+
 
 </style>
 
@@ -1179,47 +1228,96 @@ async function crearCuentaUsuario(){
     
 
     <!-- Cards -->
-    <div class="five">
-      <div class="card">
-        <div class="colTitle">
-          Programados
-          <span class="pill"><span class="dot info"></span>${programados.length}</span>
-        </div>
-        ${programados.length ? programados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
-      </div>
+      <div class="five">
 
-      <div class="card">
-        <div class="colTitle">
-          Pend. Autorización
-          <span class="pill"><span class="dot warn"></span>${autoriz.length}</span>
-        </div>
-        ${autoriz.length ? autoriz.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
+  <!-- PROGRAMADOS -->
+  <div class="card">
+    
+    <div class="card kpi info">
+      <div class="title">
+        <span class="dot info" style="margin-right:8px;"></span>
+        Programados
       </div>
-
-      <div class="card">
-        <div class="colTitle">
-          Llegaron
-          <span class="pill"><span class="dot warn"></span>${llegados.length}</span>
-        </div>
-        ${llegados.length ? llegados.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
-      </div>
-
-      <div class="card">
-        <div class="colTitle">
-          Dentro
-          <span class="pill"><span class="dot ok"></span>${dentro.length}</span>
-        </div>
-        ${dentro.length ? dentro.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
-      </div>
-
-      <div class="card">
-        <div class="colTitle">
-          Finalizados / Rechazados
-          <span class="pill"><span class="dot muted"></span>${fin.length}</span>
-        </div>
-        ${fin.length ? fin.map(renderVisitCard).join("") : `<div class="muted">Sin registros</div>`}
-      </div>
+      <div class="big">${programados.length}</div>
     </div>
+
+    ${programados.length
+      ? programados.map(renderVisitCard).join("")
+      : `<div class="muted">Sin registros</div>`}
+
+  </div>
+
+  <!-- AUTORIZACION -->
+  <div class="card">
+
+    <div class="card kpi warn">
+      <div class="title">
+        <span class="dot warn" style="margin-right:8px;"></span>
+        Pend. Autorización
+      </div>
+      <div class="big">${autoriz.length}</div>
+    </div>
+
+    ${autoriz.length
+      ? autoriz.map(renderVisitCard).join("")
+      : `<div class="muted">Sin registros</div>`}
+
+  </div>
+
+  <!-- LLEGADOS -->
+  <div class="card">
+
+    <div class="card kpi warn">
+      <div class="title">
+        <span class="dot warn" style="margin-right:8px;"></span>
+        Llegaron
+      </div>
+      <div class="big">${llegados.length}</div>
+    </div>
+
+    ${llegados.length
+      ? llegados.map(renderVisitCard).join("")
+      : `<div class="muted">Sin registros</div>`}
+
+  </div>
+
+  <!-- DENTRO -->
+  <div class="card">
+
+    <div class="card kpi ok">
+
+      <div class="title">
+        <span class="dot ok" style="margin-right:8px;"></span>
+        Dentro
+      </div>
+      <div class="big">${dentro.length}</div>
+    </div>
+
+    ${dentro.length
+      ? dentro.map(renderVisitCard).join("")
+      : `<div class="muted">Sin registros</div>`}
+
+  </div>
+
+  <!-- FINAL -->
+  <div class="card">
+
+    <div class="card kpi muted">
+      <div class="title">
+        <span class="dot muted" style="margin-right:8px;"></span>
+        Finalizados
+      </div>
+      <div class="big">${fin.length}</div>
+    </div>
+
+    ${fin.length
+      ? fin.map(renderVisitCard).join("")
+      : `<div class="muted">Sin registros</div>`}
+
+  </div>
+
+</div>
+
   `;
 
   // ✅ Bindings post-render
