@@ -514,6 +514,19 @@ html[data-theme="copper"] .visitCard .muted,
 html[data-theme="copper"] .card .muted{
   color:#FED7AA !important;
 }
+/* Refuerzo de colores de tarjetas semaforo por tema */
+html[data-theme="dark"] .visitCard.rag-ok{ background:linear-gradient(135deg, rgba(22,163,74,.28), rgba(15,23,42,.92)) !important; border-color:rgba(34,197,94,.75) !important; box-shadow:inset 7px 0 0 rgba(34,197,94,.95), 0 0 22px rgba(34,197,94,.18), var(--shadow) !important; }
+html[data-theme="dark"] .visitCard.rag-warn{ background:linear-gradient(135deg, rgba(250,204,21,.30), rgba(15,23,42,.92)) !important; border-color:rgba(250,204,21,.80) !important; box-shadow:inset 7px 0 0 rgba(250,204,21,.95), 0 0 22px rgba(250,204,21,.20), var(--shadow) !important; }
+html[data-theme="dark"] .visitCard.rag-bad{ background:linear-gradient(135deg, rgba(239,68,68,.32), rgba(15,23,42,.92)) !important; border-color:rgba(248,113,113,.82) !important; box-shadow:inset 7px 0 0 rgba(239,68,68,.98), 0 0 24px rgba(239,68,68,.22), var(--shadow) !important; }
+html[data-theme="desert"] .visitCard.rag-ok{ background:linear-gradient(135deg, rgba(111,143,58,.24), rgba(247,243,232,.92)) !important; border-color:rgba(111,143,58,.62) !important; box-shadow:inset 7px 0 0 rgba(111,143,58,.88), var(--shadow) !important; }
+html[data-theme="desert"] .visitCard.rag-warn{ background:linear-gradient(135deg, rgba(217,164,65,.34), rgba(247,243,232,.92)) !important; border-color:rgba(217,164,65,.72) !important; box-shadow:inset 7px 0 0 rgba(217,164,65,.92), var(--shadow) !important; }
+html[data-theme="desert"] .visitCard.rag-bad{ background:linear-gradient(135deg, rgba(178,58,46,.26), rgba(247,243,232,.92)) !important; border-color:rgba(178,58,46,.70) !important; box-shadow:inset 7px 0 0 rgba(178,58,46,.92), var(--shadow) !important; }
+html[data-theme="mint"] .visitCard.rag-ok{ background:linear-gradient(135deg, rgba(52,211,153,.30), rgba(236,254,255,.92)) !important; border-color:rgba(52,211,153,.72) !important; box-shadow:inset 7px 0 0 rgba(52,211,153,.92), var(--shadow) !important; }
+html[data-theme="mint"] .visitCard.rag-warn{ background:linear-gradient(135deg, rgba(14,165,183,.28), rgba(236,254,255,.92)) !important; border-color:rgba(14,165,183,.68) !important; box-shadow:inset 7px 0 0 rgba(14,165,183,.90), var(--shadow) !important; }
+html[data-theme="mint"] .visitCard.rag-bad{ background:linear-gradient(135deg, rgba(220,38,38,.22), rgba(236,254,255,.92)) !important; border-color:rgba(220,38,38,.66) !important; box-shadow:inset 7px 0 0 rgba(220,38,38,.88), var(--shadow) !important; }
+html[data-theme="copper"] .visitCard.rag-ok{ background:linear-gradient(135deg, rgba(250,204,21,.34), rgba(31,19,0,.90)) !important; border-color:rgba(253,230,138,.85) !important; box-shadow:inset 7px 0 0 rgba(250,204,21,.98), 0 0 24px rgba(250,204,21,.18), var(--shadow) !important; }
+html[data-theme="copper"] .visitCard.rag-warn{ background:linear-gradient(135deg, rgba(251,146,60,.40), rgba(31,19,0,.90)) !important; border-color:rgba(251,146,60,.88) !important; box-shadow:inset 7px 0 0 rgba(251,146,60,.98), 0 0 24px rgba(251,146,60,.20), var(--shadow) !important; }
+html[data-theme="copper"] .visitCard.rag-bad{ background:linear-gradient(135deg, rgba(239,68,68,.42), rgba(31,19,0,.90)) !important; border-color:rgba(248,113,113,.88) !important; box-shadow:inset 7px 0 0 rgba(239,68,68,.98), 0 0 24px rgba(239,68,68,.24), var(--shadow) !important; }
 html[data-theme="dark"] .muted, html[data-theme="dark"] label, html[data-theme="dark"] .table th{ color:var(--muted); }
 html[data-theme="desert"] .muted, html[data-theme="desert"] label, html[data-theme="desert"] .table th{ color:var(--muted); }
 html[data-theme="mint"] .muted, html[data-theme="mint"] label, html[data-theme="mint"] .table th{ color:var(--muted); }
@@ -701,7 +714,7 @@ html[data-theme="dark"] .hamb{
         <span class="dot info" id="netDot"></span>
         <span id="netText">En línea</span>
       </span>
-      <span class="pill" id="appVersion">Versión visitantes-pwa-v9</span>
+      <span class="pill" id="appVersion">Versión visitantes-pwa-v10</span>
       <div id="userPill" class="pill" style="display:none;"></div>
       <button class="secondary" id="btnTheme">Tema</button>
       
@@ -3477,6 +3490,7 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 </script>
 </body>
 </html>
+
 
 
 
