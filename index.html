@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta name="theme-color" content="#f6f8fc" />
   <title>Guardia · Visitantes</title>
   <link rel="manifest" href="manifest.json" />
 
@@ -714,7 +715,7 @@ html[data-theme="dark"] .hamb{
         <span class="dot info" id="netDot"></span>
         <span id="netText">En línea</span>
       </span>
-      <span class="pill" id="appVersion">Versión visitantes-pwa-v10</span>
+      <span class="pill" id="appVersion">Versión visitantes-pwa-v12</span>
       <div id="userPill" class="pill" style="display:none;"></div>
       <button class="secondary" id="btnTheme">Tema</button>
       
@@ -757,7 +758,13 @@ html[data-theme="dark"] .hamb{
     localStorage.setItem("ui_theme", next);
     const btn = document.getElementById("btnTheme");
     if(btn) btn.textContent = THEME_LABELS[next] || "Tema";
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[next] || "#f6f8fc");
+    let themeMeta = document.querySelector('meta[name="theme-color"]');
+    if(!themeMeta){
+      themeMeta = document.createElement("meta");
+      themeMeta.setAttribute("name", "theme-color");
+      document.head.appendChild(themeMeta);
+    }
+    themeMeta.setAttribute("content", THEME_COLORS[next] || "#f6f8fc");
   }
 
   function initTheme(){
@@ -3490,6 +3497,8 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 </script>
 </body>
 </html>
+
+
 
 
 
