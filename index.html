@@ -565,7 +565,56 @@ html[data-theme="dark"] .hamb{
   background:rgba(148,163,184,.12);
   color:var(--text);
   border-color:var(--border);
-}</style>
+}
+/* Ajuste de contraste para chips en Desierto y Menta */
+html[data-theme="desert"] .pill{
+  background:rgba(247,243,232,.86) !important;
+  border-color:rgba(58,45,31,.22) !important;
+  color:#3A2D1F !important;
+}
+html[data-theme="desert"] .pill *:not(.dot){ background:transparent !important; color:#3A2D1F !important; }
+html[data-theme="mint"] .pill{
+  background:rgba(236,254,255,.88) !important;
+  border-color:rgba(15,118,110,.24) !important;
+  color:#0F3F3B !important;
+}
+html[data-theme="mint"] .pill *:not(.dot){ background:transparent !important; color:#0F3F3B !important; }
+
+/* Viñetas con colores del tema claro en Desierto y Menta */
+html[data-theme="desert"] .pill .dot,
+html[data-theme="mint"] .pill .dot{
+  width:9px !important;
+  height:9px !important;
+  flex:0 0 auto;
+  box-shadow:0 0 0 2px rgba(255,255,255,.72), 0 1px 4px rgba(15,23,42,.18) !important;
+}
+html[data-theme="desert"] .pill .dot.info,
+html[data-theme="mint"] .pill .dot.info{ background:#0284c7 !important; }
+html[data-theme="desert"] .pill .dot.warn,
+html[data-theme="mint"] .pill .dot.warn{ background:#d97706 !important; }
+html[data-theme="desert"] .pill .dot.ok,
+html[data-theme="mint"] .pill .dot.ok{ background:#16a34a !important; }
+html[data-theme="desert"] .pill .dot.bad,
+html[data-theme="mint"] .pill .dot.bad{ background:#dc2626 !important; }
+html[data-theme="desert"] .pill .dot.brand,
+html[data-theme="mint"] .pill .dot.brand{ background:#2563eb !important; }
+html[data-theme="desert"] .pill .dot.muted,
+html[data-theme="mint"] .pill .dot.muted{ background:#94a3b8 !important; }
+
+/* Viñetas con colores del tema oscuro en Cobre */
+html[data-theme="copper"] .pill .dot{
+  width:9px !important;
+  height:9px !important;
+  flex:0 0 auto;
+  box-shadow:0 0 0 2px rgba(31,19,0,.55), 0 1px 5px rgba(0,0,0,.28) !important;
+}
+html[data-theme="copper"] .pill .dot.info{ background:#38bdf8 !important; }
+html[data-theme="copper"] .pill .dot.warn{ background:#facc15 !important; }
+html[data-theme="copper"] .pill .dot.ok{ background:#22c55e !important; }
+html[data-theme="copper"] .pill .dot.bad{ background:#ef4444 !important; }
+html[data-theme="copper"] .pill .dot.brand{ background:#3b82f6 !important; }
+html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
+</style>
 
   <!-- ========= FIREBASE (CDN modular) ========= -->
   <script type="module">
@@ -715,7 +764,7 @@ html[data-theme="dark"] .hamb{
         <span class="dot info" id="netDot"></span>
         <span id="netText">En línea</span>
       </span>
-      <span class="pill" id="appVersion">Versión visitantes-pwa-v12</span>
+      <span class="pill" id="appVersion">Versión visitantes-pwa-v14</span>
       <div id="userPill" class="pill" style="display:none;"></div>
       <button class="secondary" id="btnTheme">Tema</button>
       
@@ -2074,7 +2123,7 @@ async function loadHistorial(){
       <div class="visitCard ${ragClass} ${qrVencido ? "qr-vencido" : ""}"
      data-act="verDetalleCita" 
      data-id="${esc(v.id)}">
-        ${qrVencido ? `<div class="qr-banda-inactivo">QR inactivo por impuntualidad</div>` : ""}
+        ${qrVencido ? `<div class="qr-banda-inactivo">QR inactivo por retraso</div>` : ""}
         <div class="row" style="justify-content:space-between;">
           <div>
             <b>${esc(v.nombreVisitante || "-")}</b>
@@ -3497,6 +3546,8 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 </script>
 </body>
 </html>
+
+
 
 
 
