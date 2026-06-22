@@ -1,4 +1,4 @@
-const CACHE_NAME = "visitantes-pwa-v5";
+﻿const CACHE_NAME = "visitantes-pwa-v9";
 
 const ASSETS = [
   "./",
@@ -50,3 +50,10 @@ self.addEventListener("fetch", event => {
       )
   );
 });
+
+
+
+
+
+
+

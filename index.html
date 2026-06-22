@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -30,7 +30,7 @@
   backdrop-filter: blur(8px);
   border-bottom:1px solid rgba(15,23,42,.10);
 
-  /* 🔑 CLAVE */
+  /* ðŸ”‘ CLAVE */
   margin-left: var(--sbw);
 }
 
@@ -314,7 +314,7 @@ header{
 .title h1{ font-size:16px; margin:0; line-height:1.1; }
 .title small{ display:block; color:#64748b; font-size:12px; margin-top:2px; }
 .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-/* 🔒 Ocultar logout SOLO en el header (botón técnico) */
+/* ðŸ”’ Ocultar logout SOLO en el header (botón técnico) */
 header #btnLogout{
   display: none !important;
 }
@@ -371,7 +371,7 @@ header #btnLogout{
 .kpi .title {
   font-size: 16px;
   font-weight: 800;
-  color: #010101;
+  color: var(--text, #0f172a);
   display: flex;
   align-items: center;
 }
@@ -404,7 +404,154 @@ header #btnLogout{
 }
 
 
-</style>
+
+/* ============================
+   TARJETAS VENCIDAS + TEMAS
+   ============================ */
+.visitCard.qr-vencido{
+  position:relative;
+  overflow:hidden;
+  padding-top:38px;
+  background: linear-gradient(135deg, rgba(255,0,64,.98), rgba(127,0,20,.92)) !important;
+  border-color: rgba(255,59,48,.95) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.14), 0 0 24px rgba(255,0,64,.62), 0 14px 34px rgba(255,0,64,.28) !important;
+}
+.visitCard.qr-vencido:hover{
+  background: linear-gradient(135deg, rgba(255,20,80,1), rgba(150,0,30,.96)) !important;
+  border-color:#ffccd5 !important;
+}
+.visitCard.qr-vencido b,
+.visitCard.qr-vencido .muted{ color:#fff !important; }
+.qr-banda-inactivo{
+  position:absolute;
+  left:0; right:0; top:0;
+  padding:7px 10px;
+  background:#ff073a;
+  color:#fff;
+  border-bottom:1px solid rgba(255,255,255,.55);
+  box-shadow:0 0 18px rgba(255,7,58,.85);
+  text-align:center;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+}
+html[data-theme="dark"]{
+  --bg:#0b1220; --panel:#111c33; --panel2:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
+  --brand:#3b82f6; --ok:#22c55e; --warn:#facc15; --info:#38bdf8; --bad:#ef4444;
+  --border:rgba(255,255,255,.10); --shadow:0 14px 34px rgba(0,0,0,.34);
+}
+html[data-theme="light"]{
+  --bg:#f6f8fc; --panel:#ffffff; --panel2:#f1f5f9; --text:#0f172a; --muted:#64748b;
+  --brand:#2563eb; --ok:#16a34a; --warn:#d97706; --info:#0284c7; --bad:#dc2626;
+  --border:rgba(15,23,42,.10); --shadow:0 10px 24px rgba(0,0,0,.08);
+}
+html[data-theme="desert"]{
+  --bg:#F7F3E8; --panel:#F2D0A7; --panel2:#F7F3E8; --text:#3A2D1F; --muted:#7b5b3b;
+  --brand:#D9A441; --ok:#6f8f3a; --warn:#D9A441; --info:#A67C52; --bad:#b23a2e;
+  --border:rgba(58,45,31,.18); --shadow:0 14px 34px rgba(58,45,31,.16);
+}
+html[data-theme="mint"]{
+  --bg:#ECFEFF; --panel:#CFFAFE; --panel2:#ECFEFF; --text:#0F3F3B; --muted:#0F766E;
+  --brand:#34D399; --ok:#34D399; --warn:#0EA5B7; --info:#67E8F9; --bad:#dc2626;
+  --border:rgba(15,118,110,.18); --shadow:0 14px 34px rgba(15,118,110,.14);
+}
+html[data-theme="copper"]{
+  --bg:#1F1300; --panel:#7C2D12; --panel2:#2a1804; --text:#FDE68A; --muted:#fed7aa;
+  --brand:#FB923C; --ok:#facc15; --warn:#FDE68A; --info:#FB923C; --bad:#ef4444;
+  --border:rgba(253,230,138,.18); --shadow:0 16px 38px rgba(31,19,0,.42);
+}
+html[data-theme="dark"] body,
+html[data-theme="desert"] body,
+html[data-theme="mint"] body,
+html[data-theme="copper"] body{ color:var(--text); }
+html[data-theme="dark"] body{ background:radial-gradient(900px 500px at 20% 0%, rgba(59,130,246,.15), transparent 60%), var(--bg); }
+html[data-theme="desert"] body{ background:radial-gradient(900px 500px at 18% 0%, rgba(217,164,65,.20), transparent 60%), radial-gradient(700px 420px at 92% 18%, rgba(166,124,82,.20), transparent 58%), var(--bg); }
+html[data-theme="mint"] body{ background:radial-gradient(900px 500px at 18% 0%, rgba(103,232,249,.28), transparent 60%), radial-gradient(760px 420px at 92% 18%, rgba(52,211,153,.22), transparent 58%), var(--bg); }
+html[data-theme="copper"] body{ background:radial-gradient(900px 500px at 18% 0%, rgba(194,65,12,.34), transparent 60%), radial-gradient(760px 420px at 92% 18%, rgba(251,146,60,.25), transparent 58%), var(--bg); }
+html[data-theme="dark"] header{ background:linear-gradient(180deg, rgba(17,28,51,.96), rgba(17,28,51,.86)); border-color:var(--border); }
+html[data-theme="desert"] header, html[data-theme="desert"] .sidebar{ background:linear-gradient(180deg, rgba(242,208,167,.98), rgba(247,243,232,.96)); border-color:var(--border); color:var(--text); }
+html[data-theme="mint"] header, html[data-theme="mint"] .sidebar{ background:linear-gradient(180deg, rgba(207,250,254,.98), rgba(236,254,255,.96)); border-color:var(--border); color:var(--text); }
+html[data-theme="copper"] header, html[data-theme="copper"] .sidebar{ background:linear-gradient(180deg, rgba(31,19,0,.98), rgba(124,45,18,.94)); border-color:var(--border); color:var(--text); }
+html[data-theme="dark"] .card, html[data-theme="dark"] .visitCard, html[data-theme="dark"] .modal{ background:linear-gradient(180deg, rgba(17,28,51,.95), rgba(15,23,42,.92)); border-color:var(--border); box-shadow:var(--shadow); color:var(--text); }
+html[data-theme="desert"] .card, html[data-theme="desert"] .visitCard, html[data-theme="desert"] .modal{ background:linear-gradient(180deg, rgba(247,243,232,.96), rgba(242,208,167,.80)); border-color:var(--border); box-shadow:var(--shadow); color:var(--text); }
+html[data-theme="mint"] .card, html[data-theme="mint"] .visitCard, html[data-theme="mint"] .modal{ background:linear-gradient(180deg, rgba(236,254,255,.97), rgba(207,250,254,.82)); border-color:var(--border); box-shadow:var(--shadow); color:var(--text); }
+html[data-theme="copper"] .card, html[data-theme="copper"] .visitCard, html[data-theme="copper"] .modal{ background:linear-gradient(180deg, rgba(124,45,18,.92), rgba(31,19,0,.86)); border-color:var(--border); box-shadow:var(--shadow); color:var(--text); }
+html[data-theme="dark"] input, html[data-theme="dark"] select, html[data-theme="dark"] textarea{ background:rgba(2,6,23,.35); color:var(--text); border-color:var(--border); }
+html[data-theme="desert"] input, html[data-theme="desert"] select, html[data-theme="desert"] textarea{ background:rgba(247,243,232,.92); color:var(--text); border-color:rgba(58,45,31,.20); }
+html[data-theme="mint"] input, html[data-theme="mint"] select, html[data-theme="mint"] textarea{ background:rgba(236,254,255,.94); color:var(--text); border-color:rgba(15,118,110,.22); }
+html[data-theme="copper"] input, html[data-theme="copper"] select, html[data-theme="copper"] textarea{ background:rgba(31,19,0,.58); color:var(--text); border-color:rgba(253,230,138,.22); }
+html[data-theme="dark"] button.secondary{ background:rgba(148,163,184,.15); color:var(--text); border:1px solid var(--border); }
+html[data-theme="desert"] button{ background:#A67C52; color:#fff; }
+html[data-theme="mint"] button{ background:#0F766E; color:#fff; }
+html[data-theme="copper"] button{ background:#C2410C; color:#fff; }
+html[data-theme="desert"] button.secondary, html[data-theme="desert"] .sb-btn{ background:rgba(242,208,167,.62); color:#3A2D1F; border-color:rgba(58,45,31,.16); }
+html[data-theme="mint"] button.secondary, html[data-theme="mint"] .sb-btn{ background:rgba(207,250,254,.70); color:#0F3F3B; border-color:rgba(15,118,110,.16); }
+html[data-theme="copper"] button.secondary, html[data-theme="copper"] .sb-btn{ background:rgba(253,230,138,.10); color:#FDE68A; border-color:rgba(253,230,138,.18); }
+html[data-theme="dark"] .pill{ background:rgba(2,6,23,.25); color:var(--muted); border-color:var(--border); }
+html[data-theme="dark"] .pill b,
+html[data-theme="dark"] .visitCard b,
+html[data-theme="dark"] .kpi .title,
+html[data-theme="dark"] .kpi .big{ color:var(--text) !important; }
+html[data-theme="dark"] .visitCard .muted{ color:var(--muted) !important; }
+html[data-theme="dark"] .kpi.info,
+html[data-theme="dark"] .kpi.warn,
+html[data-theme="dark"] .kpi.ok,
+html[data-theme="dark"] .kpi.muted{
+  background:rgba(15,23,42,.42);
+  border-color:var(--border);
+}
+html[data-theme="desert"] .pill, html[data-theme="desert"] .pill *{ background:rgba(247,243,232,.58); border-color:rgba(58,45,31,.16); color:#3A2D1F; }
+html[data-theme="mint"] .pill, html[data-theme="mint"] .pill *{ background:rgba(236,254,255,.62); border-color:rgba(15,118,110,.16); color:#0F3F3B; }
+html[data-theme="copper"] .pill, html[data-theme="copper"] .pill *{ background:rgba(31,19,0,.22); border-color:rgba(253,230,138,.18); color:#FDE68A; }
+html[data-theme="copper"] .pill b,
+html[data-theme="copper"] .visitCard b,
+html[data-theme="copper"] .kpi .title,
+html[data-theme="copper"] .kpi .big{
+  color:#FFF1B8 !important;
+}
+html[data-theme="copper"] .visitCard .muted,
+html[data-theme="copper"] .card .muted{
+  color:#FED7AA !important;
+}
+html[data-theme="dark"] .muted, html[data-theme="dark"] label, html[data-theme="dark"] .table th{ color:var(--muted); }
+html[data-theme="desert"] .muted, html[data-theme="desert"] label, html[data-theme="desert"] .table th{ color:var(--muted); }
+html[data-theme="mint"] .muted, html[data-theme="mint"] label, html[data-theme="mint"] .table th{ color:var(--muted); }
+html[data-theme="copper"] .muted, html[data-theme="copper"] label, html[data-theme="copper"] .table th{ color:var(--muted); }
+html[data-theme="dark"] .table{ border-color:var(--border); }
+html[data-theme="dark"] .table th{ background:rgba(2,6,23,.20); }
+html[data-theme="dark"] .table td{ border-bottom-color:var(--border); }
+/* Ajuste: sidebar y navegación en tema oscuro */
+html[data-theme="dark"] .sidebar{
+  background: linear-gradient(180deg, rgba(17,28,51,.98), rgba(15,23,42,.96));
+  border-right:1px solid var(--border);
+  box-shadow:0 20px 50px rgba(0,0,0,.45);
+  color:var(--text);
+}
+html[data-theme="dark"] .sidebar .sb-title span,
+html[data-theme="dark"] .sidebar .sb-section h4,
+html[data-theme="dark"] .sb-chip,
+html[data-theme="dark"] .title small{
+  color:var(--muted);
+}
+html[data-theme="dark"] .sb-btn{
+  background:rgba(148,163,184,.10);
+  color:var(--text);
+  border-color:rgba(255,255,255,.08);
+}
+html[data-theme="dark"] .sb-btn:hover{
+  background:rgba(59,130,246,.16);
+  border-color:rgba(59,130,246,.32);
+}
+html[data-theme="dark"] .sb-btn[aria-current="page"]{
+  background:rgba(59,130,246,.22);
+  border-color:rgba(59,130,246,.40);
+}
+html[data-theme="dark"] .hamb{
+  background:rgba(148,163,184,.12);
+  color:var(--text);
+  border-color:var(--border);
+}</style>
 
   <!-- ========= FIREBASE (CDN modular) ========= -->
   <script type="module">
@@ -431,7 +578,7 @@ header #btnLogout{
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-    // ✅ Tu config real (misma que tu index actual)
+    // âœ… Tu config real (misma que tu index actual)
    const firebaseConfig = {
       apiKey: "AIzaSyA0mn8aVRKPpF-yiNVTb2FKqyhHg3lQmpg",
       authDomain: "visitantes-d671e.firebaseapp.com",
@@ -457,7 +604,7 @@ header #btnLogout{
       createUserWithEmailAndPassword,
       collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot
     };
-    console.log("🔥 Firebase listo (Auth + Firestore)");
+    console.log("ðŸ”¥ Firebase listo (Auth + Firestore)");
   </script>
 </head>
 
@@ -554,7 +701,9 @@ header #btnLogout{
         <span class="dot info" id="netDot"></span>
         <span id="netText">En línea</span>
       </span>
+      <span class="pill" id="appVersion">Versión visitantes-pwa-v9</span>
       <div id="userPill" class="pill" style="display:none;"></div>
+      <button class="secondary" id="btnTheme">Tema</button>
       
       <button id="btnLogout" class="secondary" style="display:none;">Cerrar sesión</button>
     </div>
@@ -573,6 +722,44 @@ header #btnLogout{
 <script>
 (() => {
   "use strict";
+  const THEMES = ["light", "dark", "desert", "mint", "copper"];
+  const THEME_LABELS = {
+    light: "Tema: Claro",
+    dark: "Tema: Oscuro",
+    desert: "Tema: Desierto",
+    mint: "Tema: Menta",
+    copper: "Tema: Cobre"
+  };
+  const THEME_COLORS = {
+    light: "#f6f8fc",
+    dark: "#0f172a",
+    desert: "#F7F3E8",
+    mint: "#ECFEFF",
+    copper: "#1F1300"
+  };
+
+  function setTheme(mode){
+    const next = THEMES.includes(mode) ? mode : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("ui_theme", next);
+    const btn = document.getElementById("btnTheme");
+    if(btn) btn.textContent = THEME_LABELS[next] || "Tema";
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[next] || "#f6f8fc");
+  }
+
+  function initTheme(){
+    const saved = localStorage.getItem("ui_theme");
+    setTheme(saved || "light");
+  }
+
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute("data-theme") || "light";
+    const idx = THEMES.indexOf(cur);
+    setTheme(THEMES[(idx + 1) % THEMES.length]);
+  }
+
+  initTheme();
+  document.getElementById("btnTheme")?.addEventListener("click", toggleTheme);
 
   const appEl = document.getElementById("app");
   const toasts = document.getElementById("toasts");
@@ -660,6 +847,7 @@ header #btnLogout{
 
   const WAIT_GREEN_MAX = 5;
   const WAIT_YELLOW_MAX = 15;
+  const QR_LATE_BLOCK_MIN = 30;
 
   const VIEWS = {
   LOGIN: "login",
@@ -823,7 +1011,7 @@ header #btnLogout{
     if(!r) return "";
     const bg = r.dot === "ok" ? "rgba(22,163,74,.12)" : r.dot === "warn" ? "rgba(217,119,6,.14)" : "rgba(220,38,38,.14)";
     const br = r.dot === "ok" ? "rgba(22,163,74,.45)" : r.dot === "warn" ? "rgba(217,119,6,.45)" : "rgba(220,38,38,.45)";
-    return `<span class="pill" title="Semáforo de espera (Llegado→Dentro)" style="background:${bg}; border-color:${br};">
+    return `<span class="pill" title="Semáforo de espera (Llegadoâ†’Dentro)" style="background:${bg}; border-color:${br};">
       <span class="dot ${r.dot}"></span>
       Espera: <b style="color:#0f172a">${esperaMin} min</b> · ${r.label}
     </span>`;
@@ -1044,7 +1232,7 @@ header #btnLogout{
     appEl.innerHTML = `
       <div class="card" style="max-width:420px;margin:30px auto;">
         <h2 style="margin:0 0 6px;">Iniciar sesión</h2>
-        <div class="muted">Roles: Guardia / Admin / Anfitrión Requiere:(Email y contraseña)</div>
+        <div class="muted">Roles: Guardia / Admin / Anfitrión Requiere: Email y contraseña</div>
         <label>Correo</label>
         <input id="email" type="email" autocomplete="off" />
         <label>Contraseña</label>
@@ -1125,7 +1313,7 @@ async function crearCuentaUsuario(){
     const cred = await createUserWithEmailAndPassword(auth2, email, pass);
     const uid = cred.user.uid;
 
-    // 🔴 IMPORTANTE: queda pendiente de aprobación
+    // ðŸ”´ IMPORTANTE: queda pendiente de aprobación
    
     const { db2 } = window.__FB__;
 
@@ -1136,8 +1324,8 @@ async function crearCuentaUsuario(){
       email,
       pinAutorizacion: pin,
       rol: "anfitrion",     // default
-      activo: false,        // 🔴 BLOQUEADO hasta aprobación
-      aprobado: false,      // 🔴 NUEVO CAMPO
+      activo: false,        // ðŸ”´ BLOQUEADO hasta aprobación
+      aprobado: false,      // ðŸ”´ NUEVO CAMPO
       createdTs: Date.now()
     });
 
@@ -1153,7 +1341,7 @@ async function crearCuentaUsuario(){
 }
 
  function renderDashboard(){
-  // ✅ Fecha de vista (Dashboard)
+  // âœ… Fecha de vista (Dashboard)
   const fechaLabel = new Date().toLocaleDateString('es-MX');
 
   // Base filtrada por rol (anfitrión solo ve las suyas)
@@ -1181,7 +1369,7 @@ async function crearCuentaUsuario(){
       (v.status === Status.FINALIZADO || v.status === Status.RECHAZADO || !v.qrActivo)
     );
 
-  // ✅ TOTAL visible en dashboard
+  // âœ… TOTAL visible en dashboard
   const totalHoy = base.length;
 
   // Botones por rol
@@ -1190,7 +1378,7 @@ async function crearCuentaUsuario(){
     : ``;
 
   const btnAlta = (userRole === ROLES.ADMIN)
-    ? `<button class="secondary" id="btnAlta">➕ Alta de usuario</button>`
+    ? `<button class="secondary" id="btnAlta">âž• Alta de usuario</button>`
     : ``;
 
   const btnScan = (userRole === ROLES.ANFITRION)
@@ -1199,9 +1387,9 @@ async function crearCuentaUsuario(){
 
   const btnCita = (userRole === ROLES.ANFITRION)
     ? ``
-    : `<button class="secondary" id="btnCita">➕ Nueva cita</button>`;
+    : `<button class="secondary" id="btnCita">âž• Nueva cita</button>`;
 
-  // ✅ Render COMPLETO del dashboard
+  // âœ… Render COMPLETO del dashboard
   appEl.innerHTML = `
     <!-- Pills superiores: FECHA + TOTAL -->
     <div class="row" style="gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
@@ -1320,7 +1508,7 @@ async function crearCuentaUsuario(){
 
   `;
 
-  // ✅ Bindings post-render
+  // âœ… Bindings post-render
   if(userRole !== ROLES.ANFITRION){
     document.getElementById("btnScan")?.addEventListener("click", () => goTo(VIEWS.SCAN));
     document.getElementById("btnCita")?.addEventListener("click", () => goTo(VIEWS.CITA));
@@ -1421,7 +1609,7 @@ function renderKPI(){
         </div>
 
         <div class="card chart-card">
-          <div class="colTitle">Semáforo de espera (Llegado→Dentro)</div>
+          <div class="colTitle">Semáforo de espera (Llegadoâ†’Dentro)</div>
           <div class="chart-wrap sm">
             <canvas id="chRag"></canvas>
           </div>
@@ -1579,7 +1767,7 @@ function renderHistorial(){
   // Marcar activo el sidebar (si existe)
   try { setActiveSb("historial"); } catch(e){}
 
-  // ✅ Acceso permitido SOLO a Admin y Anfitrión
+  // âœ… Acceso permitido SOLO a Admin y Anfitrión
   if (userRole !== ROLES.ADMIN && userRole !== ROLES.ANFITRION) {
     toast(
       "Acceso denegado",
@@ -1701,7 +1889,7 @@ async function loadHistorial(){
     const finalizados  = list.filter(v => v.status === Status.FINALIZADO).length;
     const rechazados   = list.filter(v => v.status === Status.RECHAZADO).length;
 
-    // Espera promedio (Llegado → Dentro)
+    // Espera promedio (Llegado â†’ Dentro)
     const waits = list
       .map(v => calcTimes(v).esperaMin)
       .filter(x => x !== null);
@@ -1723,7 +1911,7 @@ async function loadHistorial(){
         <span class="pill"><span class="dot ok"></span>Dentro: <b style="color:#0f172a;margin-left:6px;">${dentro}</b></span>
         <span class="pill"><span class="dot muted"></span>Finalizados: <b style="color:#0f172a;margin-left:6px;">${finalizados}</b></span>
         <span class="pill"><span class="dot bad"></span>Rechazados: <b style="color:#0f172a;margin-left:6px;">${rechazados}</b></span>
-        <span class="pill" title="Llegado→Dentro"><span class="dot brand"></span>Espera prom: <b style="color:#0f172a;margin-left:6px;">${esperaProm} min</b></span>
+        <span class="pill" title="Llegadoâ†’Dentro"><span class="dot brand"></span>Espera prom: <b style="color:#0f172a;margin-left:6px;">${esperaProm} min</b></span>
         <span class="pill" title="Semáforo de espera"><span class="dot ok"></span>${verde}</span>
         <span class="pill" title="Semáforo de espera"><span class="dot warn"></span>${amarillo}</span>
         <span class="pill" title="Semáforo de espera"><span class="dot bad"></span>${rojo}</span>
@@ -1804,8 +1992,16 @@ async function loadHistorial(){
   }
 }
 
+
+  function qrInactivoPorImpuntualidad(v){
+    if(!v || v.status !== Status.PROGRAMADO) return false;
+    if(v.qrDesactivadoMotivo === "RETRASO") return true;
+    if(typeof v.fechaHoraTs !== "number") return false;
+    return (Date.now() - v.fechaHoraTs) > (QR_LATE_BLOCK_MIN * 60 * 1000);
+  }
   function renderVisitCard(v){
     const t = calcTimes(v);
+    const qrVencido = qrInactivoPorImpuntualidad(v);
     const chips = [];
 
     if(v.status === Status.LLEGADO && t.esperaMin !== null){
@@ -1855,9 +2051,10 @@ async function loadHistorial(){
     }
 
     return `
-      <div class="visitCard ${ragClass}"
+      <div class="visitCard ${ragClass} ${qrVencido ? "qr-vencido" : ""}"
      data-act="verDetalleCita" 
      data-id="${esc(v.id)}">
+        ${qrVencido ? `<div class="qr-banda-inactivo">QR inactivo por impuntualidad</div>` : ""}
         <div class="row" style="justify-content:space-between;">
           <div>
             <b>${esc(v.nombreVisitante || "-")}</b>
@@ -2010,7 +2207,7 @@ function openDetalleCitaModal(v){
 
       try{ await signOut(auth2); }catch{}
 
-      msg.textContent = "✅ Usuario creado, rol y PIN guardados.";
+      msg.textContent = "âœ… Usuario creado, rol y PIN guardados.";
       toast("Alta usuario","Usuario creado correctamente.", "ok", 2200);
 
       $("#uNombre").value = "";
@@ -2099,13 +2296,12 @@ Carlos Gómez"
     <option>Mario Barrios</option>
     <option>Jaime Hernández</option>
     <option>Antonio Gutiérrez</option>
-    <option>Jaret Fernández </option>
   </optgroup>
 
   <optgroup label="Ventas">
     <option>Maru Medina</option>
     <option>Alejandro Herrera</option>
-    <option>Javier Sánchez</option>
+    <option>Javier Sí¡nchez</option>
     <option>Ivonne Soto</option>
     <option>Joselyn Paz</option>
     <option>Juana Ávila</option>
@@ -2156,7 +2352,7 @@ Carlos Gómez"
     <option>Cristóbal Gutiérrez</option>
     <option>Wendy Parada</option>
     <option>Héctor Ríos</option>
-    <option>Sergio Sánchez</option>
+    <option>Sergio Sí¡nchez</option>
   </optgroup>
 
   <optgroup label="Mantenimiento">
@@ -2164,7 +2360,7 @@ Carlos Gómez"
     <option>Luis Salas</option>
     <option>Daniel García</option>
     <option>Refugio Araujo</option>
-    <option>Oscar Sánchez</option>
+    <option>Oscar Sí¡nchez</option>
   </optgroup>
 
   <optgroup label="Almacén">
@@ -2290,7 +2486,7 @@ try {
 
     await setDoc(doc(db, "visitas", id), data);
 
-    // ✅ Si es visita individual, mostramos QR
+    // âœ… Si es visita individual, mostramos QR
     if (!groupId) {
       await openQrModal({
         id,
@@ -2348,7 +2544,7 @@ try {
         <div class="row" style="justify-content:space-between;">
           <div>
             <h2 style="margin:0 0 4px;">Visitantes</h2>
-            <div class="muted">Filtros → Cargar → Tabla</div>
+            <div class="muted">Filtros â†’ Cargar â†’ Tabla</div>
           </div>
           <div class="row">
             <button class="secondary" data-act="volverVisitantes">Volver</button>
@@ -2593,7 +2789,7 @@ async function actualizarUsuario(uid, data){
   try{
     await updateDoc(doc(db, "users", uid), data);
     toast("Usuario actualizado", "Cambios guardados correctamente.", "ok", 2200);
-    loadUsuarios(); // 🔁 refresca la tabla
+    loadUsuarios(); // ðŸ” refresca la tabla
   }catch(e){
     console.error(e);
     toast("Error", "No se pudo actualizar el usuario.", "bad", 4200);
@@ -2614,11 +2810,11 @@ async function loadUsuarios() {
   try {
     const snap = await getDocs(collection(db, "users"));
 
-    usuariosCache = []; // 🔥 limpiar cache
+    usuariosCache = []; // ðŸ”¥ limpiar cache
     const rows = [];
 
     snap.forEach(d => {
-      // ✅ IMPORTANTE: el UID REAL es d.id
+      // âœ… IMPORTANTE: el UID REAL es d.id
       const u = {
         uid: d.id,
         ...d.data()
@@ -2631,7 +2827,7 @@ async function loadUsuarios() {
           <td><b>${esc(u.nombre || '-')}</b></td>
           <td>${esc(u.email || '-')}</td>
           <td>${esc(String(u.rol || '-').toUpperCase())}</td>
-          <td>${u.pinAutorizacion ? '●●●●' : '-'}</td>
+          <td>${u.pinAutorizacion ? 'â—â—â—â—' : '-'}</td>
           <td>${u.activo === false ? 'No' : 'Sí'}</td>   
 <td>
   ${
@@ -3153,13 +3349,13 @@ function startListenerHoy(){
 
   const { db, collection, query, where, orderBy, limit, onSnapshot } = window.__FB__;
 
-  // ✅ Límites del día de HOY
+  // âœ… Límites del día de HOY
   const hoyInicio = new Date();
   hoyInicio.setHours(0, 0, 0, 0);
 
   const hoyFin = new Date(hoyInicio.getTime() + 24 * 60 * 60 * 1000);
 
-  // ✅ QUERY POR FECHA PROGRAMADA (NO POR FECHA DE CREACIÓN)
+  // âœ… QUERY POR FECHA PROGRAMADA (NO POR FECHA DE CREACIÃ“N)
   const q = query(
     collection(db, "visitas"),
     where("programadaTs", ">=", hoyInicio.getTime()),
@@ -3177,7 +3373,7 @@ function startListenerHoy(){
         arr.push({ id: d.id, ...d.data() });
       });
 
-      // ✅ Solo tipo visitante
+      // âœ… Solo tipo visitante
       visitasHoy = arr.filter(v => v.tipo === "visitante");
       notifyRealtimeChanges(visitasHoy);
 
@@ -3235,28 +3431,28 @@ function stopListenerHoy(){
     userProfile = null;
   }
 
-  // 🔴 SI NO EXISTE PERFIL
+  // ðŸ”´ SI NO EXISTE PERFIL
   if (!userProfile) {
     toast("Pendiente", "Tu cuenta aún no está configurada.", "warn", 4000);
     await signOut(auth);
     return;
   }
 
-  // 🔴 SI NO ESTÁ APROBADO
+  // ðŸ”´ SI NO ESTÁ APROBADO
   if (userProfile.aprobado === false) {
     toast("Pendiente", "Tu cuenta está en revisión.", "warn", 4000);
     await signOut(auth);
     return;
   }
 
-  // 🔴 SI ESTÁ BLOQUEADO
+  // ðŸ”´ SI ESTÁ BLOQUEADO
   if (userProfile.activo === false) {
     toast("Bloqueado", "Tu cuenta está desactivada.", "bad", 4000);
     await signOut(auth);
     return;
   }
 
-  // ✅ TODO BIEN → ENTRAR
+  // âœ… TODO BIEN â†’ ENTRAR
   userRole = userProfile.rol;
 
   paintUser();
@@ -3274,10 +3470,16 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("./service-worker.js")
-      .then(() => console.log("✅ Service Worker registrado"))
-      .catch(err => console.error("❌ SW error", err));
+      .then(() => console.log("âœ… Service Worker registrado"))
+      .catch(err => console.error("âŒ SW error", err));
   });
 }
 </script>
 </body>
 </html>
+
+
+
+
+
+
