@@ -764,7 +764,7 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
         <span class="dot info" id="netDot"></span>
         <span id="netText">En línea</span>
       </span>
-      <span class="pill" id="appVersion">Versión visitantes-pwa-v14</span>
+      <span class="pill" id="appVersion">Versión visitantes-pwa-v16</span>
       <div id="userPill" class="pill" style="display:none;"></div>
       <button class="secondary" id="btnTheme">Tema</button>
       
@@ -1050,6 +1050,27 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
     const x = new Date(d);
     x.setHours(0,0,0,0);
     return { start: x.getTime(), end: x.getTime() + 24*60*60*1000 };
+  }
+
+  function todayLocalISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function boundsFromISODate(dateISO){
+    const [y, m, d] = String(dateISO || "").split("-").map(Number);
+    const start = new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0).getTime();
+    const end = new Date(y, (m || 1) - 1, d || 1, 24, 0, 0, 0).getTime();
+    return { start, end };
+  }
+
+  function timestampFromLocalDateTime(dateISO, timeHHMM){
+    const [y, m, d] = String(dateISO || "").split("-").map(Number);
+    const [hh, mm] = String(timeHHMM || "00:00").split(":").map(Number);
+    return new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0, 0, 0).getTime();
   }
   function mins(ms){ return Math.max(0, Math.round(ms / 60000)); }
 
@@ -1458,6 +1479,8 @@ async function crearCuentaUsuario(){
     ? ``
     : `<button class="secondary" id="btnCita">âž• Nueva cita</button>`;
 
+  const btnActualizar = `<button class="secondary" data-act="actualizarDashboard">Actualizar</button>`;
+
   // âœ… Render COMPLETO del dashboard
   appEl.innerHTML = `
     <!-- Pills superiores: FECHA + TOTAL -->
@@ -1477,6 +1500,7 @@ async function crearCuentaUsuario(){
         </b>
       </span>
       <div class="row" style="margin-bottom:12px;">
+      ${btnActualizar}
       ${btnScan}
     </div>
     </div>
@@ -1847,7 +1871,7 @@ function renderHistorial(){
     return goTo(VIEWS.DASH);
   }
 
-  const todayISO = new Date().toISOString().slice(0,10);
+  const todayISO = todayLocalISO();
 
   appEl.innerHTML = `
     <div class="card">
@@ -1913,13 +1937,12 @@ function renderHistorial(){
 async function cargarHistorialPorDia(fechaISO){
   const { db, collection, query, where, orderBy, getDocs, limit } = window.__FB__;
 
-  const start = new Date(fechaISO + "T00:00:00").getTime();
-  const end   = new Date(fechaISO + "T23:59:59").getTime();
+  const { start, end } = boundsFromISODate(fechaISO);
 
   const q = query(
     collection(db, "visitas"),
     where("programadaTs", ">=", start),
-    where("programadaTs", "<=", end),
+    where("programadaTs", "<", end),
     orderBy("programadaTs", "asc"),
     limit(2000)
   );
@@ -2296,7 +2319,7 @@ function openDetalleCitaModal(v){
   function renderNuevaCita(){
   try{ setActiveSb("cita"); }catch{}
     
-    const todayISO = new Date().toISOString().slice(0,10);
+    const todayISO = todayLocalISO();
     appEl.innerHTML = `
       <div class="card" style="max-width:640px;margin:20px auto;">
         <div class="row" style="justify-content:space-between;">
@@ -2508,7 +2531,7 @@ if (!nombres.length) {
 }
 
 // Timestamps
-const programadaTs = new Date(`${fecha}T${hora}:00`).getTime();
+const programadaTs = timestampFromLocalDateTime(fecha, hora);
 
 // ID de grupo (solo si son varios)
 const groupId = nombres.length > 1 ? "GRP-" + Date.now() : null;
@@ -2586,14 +2609,13 @@ try {
   // ---------- Visitantes (Tabla) ----------
   async function fetchVisitantesByDay(dateISO){
     const { db, collection, query, where, getDocs, limit } = window.__FB__;
-    const start = new Date(dateISO + "T00:00:00").getTime();
-    const end = new Date(dateISO + "T23:59:59").getTime();
+    const { start, end } = boundsFromISODate(dateISO);
 
     const q = query(
       collection(db, "visitas"),
       where("tipo", "==", "visitante"),
-      where("createdTs", ">=", start),
-      where("createdTs", "<=", end),
+      where("programadaTs", ">=", start),
+      where("programadaTs", "<", end),
       limit(800)
     );
 
@@ -2607,7 +2629,7 @@ try {
 
   function renderVisitantes(){
   try{ setActiveSb("visitantes"); }catch{}
-    const todayISO = new Date().toISOString().slice(0,10);
+    const todayISO = todayLocalISO();
     appEl.innerHTML = `
       <div class="card">
         <div class="row" style="justify-content:space-between;">
@@ -2674,7 +2696,7 @@ try {
     tabEl.innerHTML = '';
 
     try{
-      const hoyISO = new Date().toISOString().slice(0,10);
+      const hoyISO = todayLocalISO();
       let list = [];
       if(fecha === hoyISO){
         list = getVisibleVisitas(visitasHoy).filter(x => x.tipo === 'visitante');
@@ -3317,6 +3339,12 @@ document.addEventListener("click", async (e) => {
     await aprobarUsuario(id);
     return;
   }
+  if (act === "actualizarDashboard") {
+    toast("Actualizando", "Recargando citas del día...", "info", 1600);
+    startListenerHoy();
+    renderDashboard();
+    return;
+  }
   if (act === "visitantes") return goTo(VIEWS.VIS);
   if (act === "usuarios") return goTo(VIEWS.USERS);
   if (act === "kpi") return goTo(VIEWS.KPI);
@@ -3546,6 +3574,10 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 </script>
 </body>
 </html>
+
+
+
+
 
 
 
