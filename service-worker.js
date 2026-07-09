@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = "visitantes-pwa-v16";
+﻿const CACHE_NAME = "visitantes-pwa-v17";
 
 const ASSETS = [
   "./",

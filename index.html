@@ -182,6 +182,38 @@
       box-shadow: inset 6px 0 0 rgba(220,38,38,.75), 0 8px 16px rgba(2,6,23,.06);
     }
 
+    .visitCard.visita-especial{
+      position:relative;
+      overflow:hidden;
+      border-color:#00d9ff;
+      background:linear-gradient(135deg, rgba(0,217,255,.34), rgba(16,24,64,.08) 48%, rgba(0,92,255,.26));
+      box-shadow:
+        inset 8px 0 0 #00e5ff,
+        0 0 0 2px rgba(0,217,255,.60),
+        0 0 24px rgba(0,217,255,.95),
+        0 0 58px rgba(0,92,255,.78),
+        0 14px 28px rgba(2,6,23,.14);
+      animation: visitaEspecialPulse 1.35s ease-in-out infinite alternate;
+    }
+    .visitCard.visita-especial::before{
+      content:"";
+      position:absolute;
+      inset:-40% -20%;
+      background:linear-gradient(115deg, transparent 28%, rgba(255,255,255,.72) 46%, transparent 64%);
+      transform:translateX(-70%) rotate(8deg);
+      animation: visitaEspecialSweep 2.1s linear infinite;
+      pointer-events:none;
+    }
+    .visitCard.visita-especial > *{ position:relative; z-index:1; }
+    .visitCard.visita-especial b,
+    .visitCard.visita-especial .muted{ color:#001b44; }
+    @keyframes visitaEspecialPulse{
+      from{ filter:saturate(1.25); }
+      to{ filter:saturate(1.75) brightness(1.08); }
+    }
+    @keyframes visitaEspecialSweep{
+      to{ transform:translateX(70%) rotate(8deg); }
+    }
     /* ===== Modal (Incidencias / PIN / QR) ===== */
     .modal-backdrop{
       position:fixed; inset:0;
@@ -764,7 +796,7 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
         <span class="dot info" id="netDot"></span>
         <span id="netText">En línea</span>
       </span>
-      <span class="pill" id="appVersion">Versión visitantes-pwa-v16</span>
+      <span class="pill" id="appVersion">Versión visitantes-pwa-v17</span>
       <div id="userPill" class="pill" style="display:none;"></div>
       <button class="secondary" id="btnTheme">Tema</button>
       
@@ -2103,6 +2135,7 @@ async function loadHistorial(){
     if(t.totalMin !== null) chips.push(`<span class="pill"><span class="dot muted"></span>Total: <b style="color:#0f172a">${t.totalMin} min</b></span>`);
     if(v.gafeteNo) chips.push(`<span class="pill"><span class="dot info"></span>Gafete: <b style="color:#0f172a">${esc(v.gafeteNo)}</b></span>`);
     if(v.incidenciasSalida) chips.push(`<span class="pill"><span class="dot warn"></span>Incidencia</span>`);
+    if(v.visitaEspecial) chips.push(`<span class="pill" style="background:rgba(0,217,255,.22);border-color:rgba(0,217,255,.72);color:#001b44;"><span class="dot info"></span>Visita especial</span>`);
 
     const cc = citaChip(v);
     if(cc) chips.push(cc);
@@ -2143,7 +2176,7 @@ async function loadHistorial(){
     }
 
     return `
-      <div class="visitCard ${ragClass} ${qrVencido ? "qr-vencido" : ""}"
+      <div class="visitCard ${ragClass} ${v.visitaEspecial ? "visita-especial" : ""} ${qrVencido ? "qr-vencido" : ""}"
      data-act="verDetalleCita" 
      data-id="${esc(v.id)}">
         ${qrVencido ? `<div class="qr-banda-inactivo">QR inactivo por retraso</div>` : ""}
@@ -2325,7 +2358,7 @@ function openDetalleCitaModal(v){
         <div class="row" style="justify-content:space-between;">
           <div>
             <h2 style="margin:0 0 6px;">Nueva cita</h2>
-            <div class="muted">Se crea en estatus <b>PROGRAMADO</b> y se genera su QR.</div>
+            <div class="muted">Normalmente se crea en <b>PROGRAMADO</b>; si es visita especial queda en <b>PEND. AUTORIZACIÓN</b>.</div>
           </div>
           <button class="secondary" id="btnBackCita">Volver</button>
         </div>
@@ -2482,6 +2515,12 @@ Carlos Gómez"
           </div>
         </div>
 
+        <label class="pill" style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;">
+          <input id="cVisitaEspecial" type="checkbox" style="width:auto;accent-color:#00d9ff;" />
+          <span class="dot info"></span>
+          Visita especial
+        </label>
+
         <div style="height:12px"></div>
         <div class="row">
           <button id="btnCrearCita">Crear cita</button>
@@ -2500,6 +2539,7 @@ Carlos Gómez"
       $("#cPersona").value = "";
       $("#cFecha").value = todayISO;
       $("#cHora").value = "09:00";
+      $("#cVisitaEspecial").checked = false;
       $("#cNombre").focus();
     };
     $("#btnCrearCita").onclick = crearCitaProgramada;
@@ -2513,6 +2553,7 @@ Carlos Gómez"
     const fecha = ($("#cFecha").value || "").trim();
     const hora = ($("#cHora").value || "").trim();
     const grupoTxt = ($("#cGrupo").value || "").trim();
+    const visitaEspecial = !!$("#cVisitaEspecial")?.checked;
 
     if((!nombre && !grupoTxt) || !empresa || !motivo || !persona || !fecha || !hora){
     toast("Faltan datos","Ingresa al menos un visitante.", "warn", 3000);
@@ -2559,7 +2600,9 @@ try {
       horaProgramada: hora,
       programadaTs,
 
-      status: Status.PROGRAMADO,
+      status: visitaEspecial ? Status.AUTORIZACION : Status.PROGRAMADO,
+      visitaEspecial,
+      requiereAutorizacion: visitaEspecial,
       qrActivo: true,
 
       llegadaTs: null,
@@ -2582,8 +2625,8 @@ try {
     if (!groupId) {
       await openQrModal({
         id,
-        title: "Cita programada · QR generado",
-        subtitle: "Guarda o comparte este QR con el visitante."
+        title: visitaEspecial ? "Visita especial · Pendiente de autorización" : "Cita programada · QR generado",
+        subtitle: visitaEspecial ? "El QR queda pendiente hasta que se autorice." : "Guarda o comparte este QR con el visitante."
       });
     }
   }
@@ -2591,8 +2634,8 @@ try {
   toast(
     "Cita creada",
     groupId
-      ? "Se crearon todas las visitas del grupo."
-      : "Quedó en PROGRAMADO.",
+      ? (visitaEspecial ? "Se crearon todas las visitas del grupo en PEND. AUTORIZACIÓN." : "Se crearon todas las visitas del grupo.")
+      : (visitaEspecial ? "Quedó en PEND. AUTORIZACIÓN." : "Quedó en PROGRAMADO."),
     "ok",
     2600
   );
