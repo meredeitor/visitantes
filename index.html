@@ -796,7 +796,7 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
         <span class="dot info" id="netDot"></span>
         <span id="netText">En línea</span>
       </span>
-      <span class="pill" id="appVersion">Versión visitantes-pwa-v17</span>
+      <span class="pill" id="appVersion">Versión visitantes-pwa-v18</span>
       <div id="userPill" class="pill" style="display:none;"></div>
       <button class="secondary" id="btnTheme">Tema</button>
       
@@ -2150,9 +2150,9 @@ async function loadHistorial(){
       }
     }
 
-    // AUTORIZACION: solo admin + anfitrión (con PIN en handler)
+    // AUTORIZACION: solo admin
     if(v.status === Status.AUTORIZACION && v.qrActivo){
-      if(userRole === ROLES.ADMIN || userRole === ROLES.ANFITRION){
+      if(userRole === ROLES.ADMIN){
         acciones.push(`<button class="ok" data-act="autorizar" data-id="${esc(v.id)}">Autorizar</button>`);
         acciones.push(`<button class="danger" data-act="rechazar" data-id="${esc(v.id)}">Rechazar</button>`);
       }
@@ -3241,6 +3241,10 @@ async function loadUsuarios() {
   }
 
   async function autorizarVisita(id){
+    if(userRole !== ROLES.ADMIN){
+      toast("No permitido","Solo ADMIN puede autorizar visitas.", "bad", 3200);
+      return goTo(VIEWS.DASH);
+    }
     const { db, doc, updateDoc } = window.__FB__;
     try{
       await updateDoc(doc(db, "visitas", id), {
@@ -3260,6 +3264,10 @@ async function loadUsuarios() {
   }
 
   async function rechazarVisita(id){
+    if(userRole !== ROLES.ADMIN){
+      toast("No permitido","Solo ADMIN puede rechazar visitas.", "bad", 3200);
+      return goTo(VIEWS.DASH);
+    }
     const { db, doc, updateDoc } = window.__FB__;
     try{
       await updateDoc(doc(db, "visitas", id), {
@@ -3450,6 +3458,10 @@ document.addEventListener("click", async (e) => {
   }
 
   if (act === "autorizar") {
+    if(userRole !== ROLES.ADMIN){
+      toast("No permitido","Solo ADMIN puede autorizar visitas.", "bad", 3200);
+      return;
+    }
     const ok = await requirePin("autorizar la visita");
     if (!ok) return;
     await autorizarVisita(id);
@@ -3457,6 +3469,10 @@ document.addEventListener("click", async (e) => {
   }
 
   if (act === "rechazar") {
+    if(userRole !== ROLES.ADMIN){
+      toast("No permitido","Solo ADMIN puede rechazar visitas.", "bad", 3200);
+      return;
+    }
     if (!confirm("¿Rechazar esta visita? Se desactivará el QR.")) return;
     const ok = await requirePin("rechazar la visita");
     if (!ok) return;
