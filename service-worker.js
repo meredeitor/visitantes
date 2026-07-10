@@ -1,10 +1,12 @@
-﻿const CACHE_NAME = "visitantes-pwa-v18";
+const CACHE_NAME = "visitantes-pwa-v28";
 
 const ASSETS = [
   "./",
   "./kiosk.html",
   "./index.html",
   "./manifest.json",
+  "./favicon.ico",
+  "./icons/icon-192.png",
   "./service-worker.js"
 ];
 

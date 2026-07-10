@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Registro de Visitantes</title>
   <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="./icons/icon-192.png">
+  <link rel="shortcut icon" href="./favicon.ico">
   <meta name="theme-color" content="#2563eb">
   <!-- QRCode.js -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -93,6 +96,55 @@
       margin:0 auto;
       display:block;
     }
+
+    /* ===== Branding y pase QR del kiosko ===== */
+    body{ min-height:100vh; background:linear-gradient(135deg, rgba(2,6,23,.96), rgba(8,40,75,.92) 52%, rgba(37,99,235,.84)); }
+    .kiosk-brand{ display:grid; justify-items:center; gap:8px; margin:8px 0 16px; color:#fff; text-align:center; }
+    .kiosk-logo{ width:62px; height:62px; border-radius:18px; box-shadow:0 16px 34px rgba(0,0,0,.28); }
+    .kiosk-brand h1{ margin:0; color:#fff; font-size:clamp(24px,7vw,34px); line-height:1; }
+    .kiosk-brand .muted{ color:rgba(255,255,255,.76); }
+    .card{ border:1px solid rgba(255,255,255,.18); box-shadow:0 24px 60px rgba(2,6,23,.28); }
+    button{ background:linear-gradient(135deg,#2563eb,#38bdf8); box-shadow:0 12px 26px rgba(37,99,235,.24); }
+    button.secondary{ background:#eef2ff; color:#0f172a; box-shadow:none; }
+    .visitor-pass-wrap{ display:flex; justify-content:center; margin-top:16px; }
+    .visitor-pass{ width:min(100%,520px); overflow:hidden; border-radius:24px; background:#f8fafc; color:#0f172a; border:1px solid rgba(15,23,42,.12); box-shadow:0 28px 70px rgba(2,6,23,.30); }
+    .visitor-pass-hero{ position:relative; display:grid; grid-template-columns:1fr auto; gap:14px; min-height:160px; padding:24px 26px 46px; color:#fff; background:linear-gradient(135deg, rgba(3,18,37,.98), rgba(8,40,75,.96) 58%, rgba(37,99,235,.88)); }
+    .visitor-pass-hero::after{ content:""; position:absolute; left:-8%; right:-8%; bottom:-30px; height:62px; background:#f8fafc; transform:skewY(4deg); transform-origin:left top; }
+    .visitor-pass-brand,.visitor-pass-title,.visitor-pass-number{ position:relative; z-index:1; }
+    .visitor-pass-brand{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+    .visitor-pass-brand img{ width:42px; height:42px; border-radius:12px; object-fit:cover; box-shadow:0 12px 26px rgba(0,0,0,.26); }
+    .visitor-pass-brand strong{ display:block; font-size:13px; letter-spacing:2.5px; text-transform:uppercase; }
+    .visitor-pass-brand span{ display:block; margin-top:3px; color:rgba(255,255,255,.74); font-size:9px; letter-spacing:1.4px; text-transform:uppercase; }
+    .visitor-pass-title h2{ margin:0; color:#fff; font-size:30px; line-height:1; letter-spacing:1.6px; text-transform:uppercase; }
+    .visitor-pass-status{ display:flex; align-items:center; gap:10px; margin-top:12px; color:#93c5fd; font-size:14px; font-weight:900; letter-spacing:1.3px; text-transform:uppercase; }
+    .visitor-pass-number{ min-width:120px; padding-top:28px; } .visitor-pass-number small{ display:block; color:rgba(255,255,255,.70); font-size:10px; letter-spacing:2px; text-transform:uppercase; } .visitor-pass-number b{ display:block; margin-top:10px; color:#fff; font-size:20px; overflow-wrap:anywhere; } .visitor-pass-number i{ display:block; width:46px; height:3px; margin-top:14px; background:#60a5fa; border-radius:999px; }
+    .visitor-pass-body{ position:relative; z-index:2; padding:0 26px; margin-top:-20px; } .visitor-pass-person{ display:grid; grid-template-columns:54px 1fr; gap:14px; align-items:center; padding-bottom:16px; border-bottom:1px solid rgba(15,23,42,.16); } .visitor-pass-avatar{ display:grid; place-items:center; width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,#dbeafe,#eff6ff); color:#1d4ed8; border:1px solid rgba(37,99,235,.18); font-weight:900; font-size:22px; }
+    .visitor-pass-label{ color:#475569; font-size:10px; font-weight:900; letter-spacing:1.5px; text-transform:uppercase; } .visitor-pass-name{ margin-top:6px; color:#0f172a; font-size:24px; line-height:1.05; font-weight:900; overflow-wrap:anywhere; } .visitor-pass-sub{ margin-top:7px; color:#475569; font-size:13px; font-weight:700; overflow-wrap:anywhere; }
+    .visitor-pass-facts{ display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px 0 10px; } .visitor-pass-fact{ display:grid; grid-template-columns:42px 1fr; gap:10px; align-items:center; min-width:0; } .visitor-pass-icon{ display:grid; place-items:center; width:42px; height:42px; border-radius:50%; color:#2563eb; background:#fff; border:2px solid #dbe4f0; font-weight:900; } .visitor-pass-fact b{ display:block; margin-top:4px; color:#0f172a; font-size:14px; overflow-wrap:anywhere; } .visitor-pass-fact span{ display:block; margin-top:3px; color:#2563eb; font-size:12px; font-weight:800; overflow-wrap:anywhere; }
+    .visitor-pass-qr-zone{ display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:center; padding:12px 0 16px; } .visitor-pass-side{ display:grid; justify-items:center; gap:8px; color:#0f172a; text-align:center; font-size:10px; font-weight:900; text-transform:uppercase; } .visitor-pass-side i{ width:36px; height:3px; background:#2563eb; border-radius:999px; } .visitor-pass-qr-card{ display:grid; justify-items:center; } .visitor-pass-qr{ display:inline-block; padding:12px; border-radius:16px; background:#fff; box-shadow:0 14px 34px rgba(15,23,42,.14); } .visitor-pass-code{ margin-top:10px; color:#2563eb; font-size:13px; font-weight:900; letter-spacing:1.2px; text-align:center; overflow-wrap:anywhere; } .visitor-pass-code small{ display:block; margin-top:4px; color:#475569; font-size:10px; letter-spacing:2px; text-transform:uppercase; }
+    .visitor-pass-instructions{ display:grid; grid-template-columns:42px 1fr; gap:14px; align-items:center; margin:0 -12px; padding:14px 16px; border-radius:20px 20px 0 0; background:#e8eef7; color:#334155; } .visitor-pass-instructions b{ display:block; color:#0f172a; font-size:12px; letter-spacing:1px; text-transform:uppercase; } .visitor-pass-instructions p{ margin:4px 0 0; font-size:13px; line-height:1.35; } .visitor-pass-footer{ display:flex; align-items:center; gap:12px; padding:14px 26px; color:#fff; background:#020d1a; font-size:11px; font-weight:900; letter-spacing:1.8px; text-transform:uppercase; }
+    @media (max-width:620px){ .container{ max-width:100%; padding:12px; } .visitor-pass-hero,.visitor-pass-facts,.visitor-pass-qr-zone{ grid-template-columns:1fr; } .visitor-pass-side{ display:none; } .visitor-pass-person{ grid-template-columns:1fr; text-align:center; justify-items:center; } .visitor-pass-body{ padding:0 20px; } }
+
+    /* Ajuste compacto para pase QR en kiosko */
+    #resultado{ max-width:480px; margin:0 auto; }
+    #resultado .visitor-pass{ width:min(100%,460px); border-radius:20px; }
+    #resultado .visitor-pass-hero{ min-height:130px; padding:18px 22px 36px; }
+    #resultado .visitor-pass-title h2{ font-size:25px; }
+    #resultado .visitor-pass-brand{ margin-bottom:12px; }
+    #resultado .visitor-pass-brand img{ width:34px; height:34px; }
+    #resultado .visitor-pass-body{ padding:0 22px; margin-top:-16px; }
+    #resultado .visitor-pass-name{ font-size:21px; }
+    #resultado .visitor-pass-facts{ padding:12px 0 6px; }
+    #resultado .visitor-pass-qr-zone{ padding:8px 0 10px; gap:10px; }
+    #resultado .visitor-pass-qr{ padding:9px; border-radius:14px; }
+    #resultado .visitor-pass-qr canvas,
+    #resultado .visitor-pass-qr img{ width:176px !important; height:176px !important; }
+    #resultado .visitor-pass-instructions{ padding:10px 14px; }
+    #resultado .visitor-pass-footer{ padding:10px 22px; }
+    @media (max-width:620px){
+      #resultado .visitor-pass-qr canvas,
+      #resultado .visitor-pass-qr img{ width:168px !important; height:168px !important; }
+    }
   </style>
 
   <!-- Firebase (solo Firestore, pÃºblico) -->
@@ -121,10 +173,11 @@
 
 <body>
   <div class="container">
-    <h1>Registro de Visitantes</h1>
-    <p class="muted" style="text-align:center">
-      Ingresa tus datos y espera <b>autorización</b> de guardia
-    </p>
+    <div class="kiosk-brand">
+      <img class="kiosk-logo" src="icons/icon-192.png" alt="MereSoft Access Control">
+      <h1>MereSoft Access Control</h1>
+      <p class="muted">Registro de visitantes - MereSoft Suite</p>
+    </div>
 
     <!-- FORM -->
     <div class="card" id="formCard">
@@ -362,71 +415,68 @@
       }
     }
 
-    function renderResultado(data){
-      document.getElementById("formCard").style.display = "none";
-      document.getElementById("resultado").innerHTML = `
-        <div class="visitCard">
-          <b>${escapeHtml(data.nombreVisitante)}</b>
-          <div class="muted">${escapeHtml(data.empresa)}</div>
-          <div class="muted">Motivo: <b>${escapeHtml(data.motivoVisita)}</b></div>
-          <div class="muted">Visita a: <b>${escapeHtml(data.personaVisita)}</b></div>
-
-          <div class="meta">
-            <span class="pill">
-              <span class="dot warn"></span>
-              PENDIENTE AUTORIZACIÓN
-            </span>
-            <span class="pill">
-              <span class="dot ok"></span>
-              QR ACTIVO
-            </span>
-          </div>
-
-          <div class="qr-wrapper">
-            <div id="qr"></div>
-          </div>
-
-          <div class="row">
-            <button class="secondary" id="btnGuardarQR" type="button">Guardar QR</button>
-            <button class="secondary" id="btnCompartirQR" type="button">Compartir QR</button>
-          </div>
-
-          <p class="muted" style="text-align:center;margin-top:10px">
-             Conserva este QR. Cuando guardia autorice tu entrada, podrán escanearlo para registrar <b>entrada/salida</b>.
-          </p>
-        </div>
-      `;
-
-      const qrEl = document.getElementById("qr");
-      qrEl.innerHTML = "";
-      new QRCode(qrEl, { text: data.id, width: 220, height: 220 });
-
-      const canvas = qrEl.querySelector("canvas");
-      const qrDataUrl = canvas?.toDataURL("image/png");
-
-      document.getElementById("btnGuardarQR").onclick = () => {
-        if(!qrDataUrl) return alert("No se pudo generar el QR");
-        const a = document.createElement("a");
-        a.href = qrDataUrl;
-        a.download = `QR-${data.id}.png`;
-        a.click();
-      };
-
-      document.getElementById("btnCompartirQR").onclick = async () => {
-        if(!qrDataUrl || !navigator.share){
-          alert("Guarda el QR o toma captura de pantalla");
-          return;
-        }
-        const blob = await (await fetch(qrDataUrl)).blob();
-        const file = new File([blob], `QR-${data.id}.png`, {type:'image/png'});
-        await navigator.share({
-          title: "QR de Visitante",
-          text: "Conserva este QR para tu visita",
-          files: [file]
-        });
-      };
+    function visitorPassMarkup(data){
+      const inicial = String(data.nombreVisitante || "V").trim().charAt(0).toUpperCase() || "V";
+      return `
+        <div class="visitor-pass-wrap"><div class="visitor-pass" id="visitorPass">
+          <div class="visitor-pass-hero"><div><div class="visitor-pass-brand"><img src="icons/icon-192.png" alt="MereSoft Access Control" data-html2canvas-ignore="true"><div><strong>MereSoft</strong><span>Access Control</span></div></div><div class="visitor-pass-title"><h2>Cita visitante</h2></div></div><div class="visitor-pass-number"><small>Folio</small><b>${escapeHtml(data.id)}</b><i></i></div></div>
+          <div class="visitor-pass-body"><div class="visitor-pass-person"><div class="visitor-pass-avatar">${escapeHtml(inicial)}</div><div><div class="visitor-pass-label">Visitante</div><div class="visitor-pass-name">${escapeHtml(data.nombreVisitante)}</div><div class="visitor-pass-sub">${escapeHtml(data.empresa)}</div></div></div>
+            <div class="visitor-pass-facts"><div class="visitor-pass-fact"><div class="visitor-pass-icon">A</div><div><div class="visitor-pass-label">Visita a</div><b>${escapeHtml(data.personaVisita)}</b><span>${escapeHtml(data.motivoVisita)}</span></div></div><div class="visitor-pass-fact"><div class="visitor-pass-icon">H</div><div><div class="visitor-pass-label">Fecha y hora</div><b>${escapeHtml(data.fechaProgramada)}</b><span>${escapeHtml(data.horaProgramada)}</span></div></div></div>
+            <div class="visitor-pass-qr-zone"><div class="visitor-pass-side"><div class="visitor-pass-icon">ID</div><i></i><div>Identificacion</div></div><div class="visitor-pass-qr-card"><div id="qr" class="visitor-pass-qr"></div><div class="visitor-pass-code">${escapeHtml(data.id)}<small>Codigo QR</small></div></div><div class="visitor-pass-side"><div class="visitor-pass-icon">15</div><i></i><div>Valido<br>15 min</div></div></div>
+            <div class="visitor-pass-instructions"><div class="visitor-pass-icon">!</div><div><b>Indicaciones</b><p>Conserva este pase. Guardia podra escanearlo cuando tu entrada sea autorizada.</p></div></div></div>
+          <div class="visitor-pass-footer">MereSoft Suite - Visitantes</div>
+        </div></div>`;
     }
 
+    async function visitorPassBlob(){
+      const pass = document.getElementById("visitorPass");
+      if(pass && window.html2canvas){
+        const rendered = await window.html2canvas(pass, {
+          backgroundColor: "#f8fafc",
+          scale: Math.min(2, window.devicePixelRatio || 1.5),
+          useCORS: false,
+          allowTaint: false,
+          ignoreElements: (el) => el?.hasAttribute?.("data-html2canvas-ignore")
+        });
+        const blob = await new Promise(resolve => rendered.toBlob(resolve, "image/png", 0.95));
+        if(blob) return blob;
+        const dataUrl = rendered.toDataURL("image/png");
+        return await (await fetch(dataUrl)).blob();
+      }
+      return null;
+    }
+
+    function renderResultado(data){
+      document.getElementById("formCard").style.display = "none";
+      document.getElementById("resultado").innerHTML = `${visitorPassMarkup(data)}<div class="row" style="margin-top:12px;"><button class="secondary" id="btnGuardarQR" type="button">Guardar pase</button><button class="secondary" id="btnCompartirQR" type="button">Compartir pase</button></div>`;
+      const qrEl = document.getElementById("qr");
+      qrEl.innerHTML = "";
+      new QRCode(qrEl, { text:data.id, width:190, height:190 });
+      const canvas = qrEl.querySelector("canvas");
+      const qrDataUrl = canvas?.toDataURL("image/png");
+      document.getElementById("btnGuardarQR").onclick = async () => {
+        const blob = await visitorPassBlob();
+        if(!blob) return alert("No se pudo generar el pase");
+        const passDataUrl = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+        const a = document.createElement("a");
+        a.href = passDataUrl;
+        a.download = `Pase-Visitante-${data.id}.png`;
+        a.click();
+      };
+      document.getElementById("btnCompartirQR").onclick = async () => {
+        if(!navigator.share){ alert("Tu dispositivo no soporta compartir. Usa Guardar pase."); return; }
+        const passBlob = await visitorPassBlob();
+        if(!passBlob){ await navigator.share({ title:"Pase de Visitante", text:"Conserva este pase para tu visita" }); return; }
+        try{
+          const file = new File([passBlob], `Pase-Visitante-${data.id}.png`, {type:"image/png"});
+          await navigator.share({ title:"Pase de Visitante", text:"Conserva este pase para tu visita", files:[file] });
+        }catch(e){ console.error(e); alert("No se pudo compartir el pase"); }
+      };
+    }
     function escapeHtml(s){
       return String(s ?? "").replace(/[&<>"']/g, (ch) => ({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
