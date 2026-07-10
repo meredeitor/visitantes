@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <meta name="theme-color" content="#f6f8fc" />
-  <title>Guardia · Visitantes</title>
+  <title>MereSoft Access Control</title>
   <link rel="manifest" href="manifest.json" />
 
   <!-- html5-qrcode (CDN) -->
@@ -344,7 +344,11 @@ header{
   display:flex; align-items:center; justify-content:center;
   font-weight:900; letter-spacing:.5px; color:#fff;
 }
-.title h1{ font-size:16px; margin:0; line-height:1.1; }
+.title h1{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:16px; margin:0; line-height:1.1; }
+.version-badge{
+  display:inline-flex; align-items:center; border-radius:999px; background:#d9f99d; color:#0b1220;
+  font-size:11px; font-weight:900; line-height:1; padding:4px 8px; letter-spacing:0;
+}
 .title small{ display:block; color:#64748b; font-size:12px; margin-top:2px; }
 .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
 /* ðŸ”’ Ocultar logout SOLO en el header (botón técnico) */
@@ -646,6 +650,89 @@ html[data-theme="copper"] .pill .dot.ok{ background:#22c55e !important; }
 html[data-theme="copper"] .pill .dot.bad{ background:#ef4444 !important; }
 html[data-theme="copper"] .pill .dot.brand{ background:#3b82f6 !important; }
 html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
+
+/* MereSoft Access auth */
+.access-auth-view{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:24px;
+}
+.access-auth-card{
+  width:min(980px,100%);
+  min-height:560px;
+  display:grid;
+  grid-template-columns:1fr minmax(320px,420px);
+  gap:22px;
+  padding:22px;
+  border:1px solid rgba(15,23,42,.10);
+  border-radius:18px;
+  background:rgba(255,255,255,.74);
+  box-shadow:0 28px 70px rgba(15,23,42,.14);
+  backdrop-filter:blur(18px);
+}
+.access-auth-brand{
+  display:grid;
+  align-content:end;
+  gap:18px;
+  min-height:420px;
+  padding:28px;
+  border-radius:14px;
+  color:#fff;
+  background:
+    radial-gradient(circle at 20% 20%,rgba(132,204,22,.38),transparent 28%),
+    linear-gradient(135deg,#0b1220,#0f766e 62%,#84cc16);
+}
+.access-auth-mark{
+  display:grid;place-items:center;width:54px;height:54px;border-radius:14px;
+  background:rgba(255,255,255,.18);font-size:1.2rem;font-weight:950;position:relative;overflow:hidden;
+}
+.access-auth-mark:after{content:"";position:absolute;inset:5px;border:1px solid rgba(255,255,255,.38);border-radius:inherit;}
+.access-auth-brand .eyebrow{color:#ccfbf1;font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;}
+.access-auth-brand h2{margin:0;font-size:2.2rem;line-height:1;letter-spacing:0;text-transform:none;}
+.access-auth-brand p{margin:0;color:rgba(255,255,255,.82);}
+.access-auth-form{
+  align-self:center;
+  display:grid;
+  gap:13px;
+  padding:24px;
+  border:1px solid rgba(15,23,42,.10);
+  border-radius:14px;
+  color:#0f172a;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 18px 38px rgba(15,23,42,.10);
+}
+.access-auth-form h2{margin:0;font-size:1.35rem;letter-spacing:0;text-transform:none;color:#0f172a;}
+.access-auth-form label{margin:0;color:#475569;font-size:.82rem;font-weight:850;}
+.access-auth-form input{min-height:40px;color:#0f172a;background:#fff;border-color:rgba(100,116,139,.28);}
+.access-auth-form input:focus{border-color:rgba(15,118,110,.62);box-shadow:0 0 0 3px rgba(15,118,110,.16);}
+.access-auth-switch{margin:0;color:#475569;font-size:.85rem;}
+.access-auth-switch b{color:#0f766e;cursor:pointer;font-weight:950;}
+.access-auth-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.access-auth-actions button{flex:1 1 150px;}
+.access-auth-form button:not(.secondary){background:linear-gradient(135deg,#0b1220,#0f766e 58%,#84cc16);box-shadow:0 10px 22px rgba(15,118,110,.22);}
+html[data-theme="dark"] .access-auth-card,
+html[data-theme="copper"] .access-auth-card{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.08);box-shadow:0 28px 70px rgba(0,0,0,.28);}
+html[data-theme="dark"] .access-auth-form,
+html[data-theme="copper"] .access-auth-form{color:#e5e7eb;border-color:rgba(255,255,255,.10);background:rgba(15,23,42,.82);box-shadow:none;}
+html[data-theme="dark"] .access-auth-form h2,
+html[data-theme="copper"] .access-auth-form h2{color:#e5e7eb;}
+html[data-theme="dark"] .access-auth-form label,
+html[data-theme="copper"] .access-auth-form label,
+html[data-theme="dark"] .access-auth-switch,
+html[data-theme="copper"] .access-auth-switch{color:#94a3b8;}
+html[data-theme="dark"] .access-auth-switch b,
+html[data-theme="copper"] .access-auth-switch b{color:#d9f99d;}
+html[data-theme="dark"] .access-auth-form input,
+html[data-theme="copper"] .access-auth-form input{color:#e5e7eb;background:rgba(2,6,23,.35);border-color:rgba(255,255,255,.10);}
+body.auth-mode header,
+body.auth-mode .sidebar,
+body.auth-mode .sb-overlay{display:none !important;}
+body.auth-mode .main-wrap{margin-left:0 !important;width:100%;}
+body.auth-mode .container{max-width:none;min-height:100vh;padding:0;}
+body.auth-mode #app{min-height:100vh;}
+@media(max-width:980px){.access-auth-card{grid-template-columns:1fr}.access-auth-brand{min-height:260px}}
+@media(max-width:640px){.access-auth-view{padding:12px}.access-auth-card{padding:12px;border-radius:12px}.access-auth-brand{min-height:220px;padding:20px}.access-auth-brand h2{font-size:1.65rem}}
 </style>
 
   <!-- ========= FIREBASE (CDN modular) ========= -->
@@ -703,14 +790,14 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
   </script>
 </head>
 
-<body>
+<body class="auth-mode">
 <div class="sb-overlay" id="sbOverlay"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand">
-    <div class="sb-logo">V</div>
+    <div class="sb-logo">MA</div>
     <div class="sb-title">
-      <b>Visitantes</b>
-      <span>Dashboard • QR • Citas • Administración</span>
+      <b>MereSoft Access Control</b>
+      <span>MereSoft Suite</span>
     </div>
   </div>
 
@@ -781,10 +868,10 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
 <header>
   <div class="topbar">
     <div class="title">
-      <div class="logo">V</div>
+      <div class="logo">MA</div>
       <div>
-        <h1>Visitantes</h1>
-        <small>Control de accesos • QR • Realtime</small>
+        <h1>MereSoft Access Control <span class="version-badge" id="appVersion">Versión VIS-V18</span></h1>
+        <small>MereSoft Suite</small>
       </div>
     </div>
 
@@ -796,7 +883,6 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
         <span class="dot info" id="netDot"></span>
         <span id="netText">En línea</span>
       </span>
-      <span class="pill" id="appVersion">Versión visitantes-pwa-v18</span>
       <div id="userPill" class="pill" style="display:none;"></div>
       <button class="secondary" id="btnTheme">Tema</button>
       
@@ -888,6 +974,10 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
    if(!sidebarEl) return;
    sidebarEl.classList.remove('open');
    if(sbOverlay) sbOverlay.classList.remove('show');
+ }
+ function setAuthShell(enabled){
+   document.body.classList.toggle("auth-mode", Boolean(enabled));
+   if(enabled) sbClose();
  }
  function sbToggle(){
    if(!sidebarEl) return;
@@ -1350,24 +1440,41 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
 
   // ---------- VIEWS ----------
   function renderLogin(){
+    setAuthShell(true);
     paintUser();
     appEl.innerHTML = `
-      <div class="card" style="max-width:420px;margin:30px auto;">
-        <h2 style="margin:0 0 6px;">Iniciar sesión</h2>
-        <div class="muted">Roles: Guardia / Admin / Anfitrión Requiere: Email y contraseña</div>
-        <label>Correo</label>
-        <input id="email" type="email" autocomplete="off" />
-        <label>Contraseña</label>
-        <input id="pass" type="password" />
-        <div style="height:12px"></div>
-        <div class="row">
-            <button id="btnLogin">Entrar</button>
-            <button class="secondary" id="btnRegistro">Crear cuenta</button>
-        </div>
-        <div style="height:12px"></div>
-      </div>
+      <section class="access-auth-view">
+        <article class="access-auth-card">
+          <div class="access-auth-brand">
+            <span class="access-auth-mark">MA</span>
+            <div>
+              <p class="eyebrow">Acceso seguro</p>
+              <h2>MereSoft Access Control</h2>
+              <p>MereSoft Suite para registro, QR y control de visitantes.</p>
+            </div>
+          </div>
+
+          <div class="access-auth-form">
+            <h2>Iniciar sesión</h2>
+            <label>Correo electrónico</label>
+            <input id="email" type="email" autocomplete="email" />
+
+            <label>Contraseña</label>
+            <input id="pass" type="password" autocomplete="current-password" />
+
+            <div class="access-auth-actions">
+              <button id="btnLogin">Entrar</button>
+              <button class="secondary" id="btnRegistro">Crear cuenta</button>
+            </div>
+
+            <p class="access-auth-switch">Roles: Guardia / Admin / Anfitrión</p>
+            <button class="secondary" id="btnLoginTheme" type="button">Tema</button>
+          </div>
+        </article>
+      </section>
     `;
     $("#btnRegistro").onclick = abrirRegistro;
+    $("#btnLoginTheme").onclick = toggleTheme;
     $("#btnLogin").onclick = async () => {
       const email = ($("#email").value || "").trim();
       const pass  = ($("#pass").value  || "").trim();
@@ -1381,7 +1488,6 @@ html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
       }
     };
   }
-
 function abrirRegistro(){
   const back = document.createElement("div");
   back.className = "modal-backdrop";
@@ -2961,7 +3067,7 @@ async function loadUsuarios() {
           <td><b>${esc(u.nombre || '-')}</b></td>
           <td>${esc(u.email || '-')}</td>
           <td>${esc(String(u.rol || '-').toUpperCase())}</td>
-          <td>${u.pinAutorizacion ? 'â—â—â—â—' : '-'}</td>
+          <td>${u.pinAutorizacion ? '****' : '-'}</td>
           <td>${u.activo === false ? 'No' : 'Sí'}</td>   
 <td>
   ${
@@ -3609,6 +3715,7 @@ function stopListenerHoy(){
   }
 
   // âœ… TODO BIEN â†’ ENTRAR
+  setAuthShell(false);
   userRole = userProfile.rol;
 
   paintUser();
