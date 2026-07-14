@@ -1,4 +1,4 @@
-const CACHE_NAME = "visitantes-pwa-v28";
+﻿const CACHE_NAME = "visitantes-pwa-v29";
 
 const ASSETS = [
   "./",
@@ -10,7 +10,7 @@ const ASSETS = [
   "./service-worker.js"
 ];
 
-// âœ… INSTALAR
+// INSTALAR
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
@@ -20,7 +20,7 @@ self.addEventListener("install", event => {
   self.skipWaiting();
 });
 
-// âœ… ACTIVAR
+// ACTIVAR
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -33,7 +33,7 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-// âœ… FETCH
+// FETCH
 self.addEventListener("fetch", event => {
   // Solo GET
   if (event.request.method !== "GET") return;

@@ -1,10 +1,10 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <meta name="theme-color" content="#f6f8fc" />
-  <title>MereSoft Access Control</title>
+  <title>Caborca Access Control</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" href="icons/icon-192.png" />
   <link rel="shortcut icon" href="favicon.ico" />
@@ -34,7 +34,7 @@
   backdrop-filter: blur(8px);
   border-bottom:1px solid rgba(15,23,42,.10);
 
-  /* ðŸ”‘ CLAVE */
+  /* 🔑 CLAVE */
   margin-left: var(--sbw);
 }
 
@@ -428,7 +428,7 @@ header{
 }
 .title small{ display:block; color:#64748b; font-size:12px; margin-top:2px; }
 .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-/* ðŸ”’ Ocultar logout SOLO en el header (botón técnico) */
+/* 🔒 Ocultar logout SOLO en el header (bot�n t�cnico) */
 header #btnLogout{
   display: none !important;
 }
@@ -728,7 +728,7 @@ html[data-theme="copper"] .pill .dot.bad{ background:#ef4444 !important; }
 html[data-theme="copper"] .pill .dot.brand{ background:#3b82f6 !important; }
 html[data-theme="copper"] .pill .dot.muted{ background:#94a3b8 !important; }
 
-/* MereSoft Access auth */
+/* Caborca Access auth */
 .access-auth-view{
   min-height:100vh;
   display:grid;
@@ -837,7 +837,7 @@ body.auth-mode #app{min-height:100vh;}
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-    // âœ… Tu config real (misma que tu index actual)
+    // ✅ Tu config real (misma que tu index actual)
    const firebaseConfig = {
       apiKey: "AIzaSyA0mn8aVRKPpF-yiNVTb2FKqyhHg3lQmpg",
       authDomain: "visitantes-d671e.firebaseapp.com",
@@ -863,7 +863,7 @@ body.auth-mode #app{min-height:100vh;}
       createUserWithEmailAndPassword,
       collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot
     };
-    console.log("ðŸ”¥ Firebase listo (Auth + Firestore)");
+    console.log("🔥 Firebase listo (Auth + Firestore)");
   </script>
 </head>
 
@@ -871,10 +871,10 @@ body.auth-mode #app{min-height:100vh;}
 <div class="sb-overlay" id="sbOverlay"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand">
-    <div class="sb-logo">MA</div>
+    <div class="sb-logo">CA</div>
     <div class="sb-title">
-      <b>MereSoft Access Control</b>
-      <span>MereSoft Suite</span>
+      <b>Caborca Access Control</b>
+      <span>Caborca Suite</span>
     </div>
   </div>
 
@@ -945,10 +945,10 @@ body.auth-mode #app{min-height:100vh;}
 <header>
   <div class="topbar">
     <div class="title">
-      <div class="logo">MA</div>
+      <div class="logo">CA</div>
       <div>
-        <h1>MereSoft Access Control <span class="version-badge" id="appVersion">Versión VIS-V28</span></h1>
-        <small>MereSoft Suite</small>
+        <h1>Caborca Access Control <span class="version-badge" id="appVersion">Versión VIS-V29</span></h1>
+        <small>Caborca Suite</small>
       </div>
     </div>
 
@@ -1300,7 +1300,7 @@ body.auth-mode #app{min-height:100vh;}
     if(!r) return "";
     const bg = r.dot === "ok" ? "rgba(22,163,74,.12)" : r.dot === "warn" ? "rgba(217,119,6,.14)" : "rgba(220,38,38,.14)";
     const br = r.dot === "ok" ? "rgba(22,163,74,.45)" : r.dot === "warn" ? "rgba(217,119,6,.45)" : "rgba(220,38,38,.45)";
-    return `<span class="pill" title="Semáforo de espera (Llegadoâ†’Dentro)" style="background:${bg}; border-color:${br};">
+    return `<span class="pill" title="Sem�foro de espera (Llegado→Dentro)" style="background:${bg}; border-color:${br};">
       <span class="dot ${r.dot}"></span>
       Espera: <b style="color:#0f172a">${esperaMin} min</b> · ${r.label}
     </span>`;
@@ -1436,7 +1436,7 @@ body.auth-mode #app{min-height:100vh;}
         <div class="visitor-pass" id="visitorPass">
           <div class="visitor-pass-hero">
             <div>
-              <div class="visitor-pass-brand"><img src="icons/icon-192.png" alt="MereSoft Access Control" data-html2canvas-ignore="true"><div><strong>MereSoft</strong><span>Access Control</span></div></div>
+              <div class="visitor-pass-brand"><img src="icons/icon-192.png" alt="Caborca Access Control" data-html2canvas-ignore="true"><div><strong>Caborca</strong><span>Access Control</span></div></div>
               <div class="visitor-pass-title"><h2>Cita visitante</h2></div>
             </div>
             <div class="visitor-pass-number"><small>Folio</small><b>${esc(id)}</b><i></i></div>
@@ -1454,7 +1454,7 @@ body.auth-mode #app{min-height:100vh;}
             </div>
             <div class="visitor-pass-instructions"><div class="visitor-pass-icon">!</div><div><b>Indicaciones</b><p>Presenta este pase en guardia. El acceso se habilita cuando la cita este autorizada.</p></div></div>
           </div>
-          <div class="visitor-pass-footer">MereSoft Suite - Visitantes</div>
+          <div class="visitor-pass-footer">Caborca Suite - Visitantes</div>
         </div>
       </div>
     `;
@@ -1577,11 +1577,11 @@ body.auth-mode #app{min-height:100vh;}
       <section class="access-auth-view">
         <article class="access-auth-card">
           <div class="access-auth-brand">
-            <span class="access-auth-mark">MA</span>
+            <span class="access-auth-mark">CA</span>
             <div>
               <p class="eyebrow">Acceso seguro</p>
-              <h2>MereSoft Access Control</h2>
-              <p>MereSoft Suite para registro, QR y control de visitantes.</p>
+              <h2>Caborca Access Control</h2>
+              <p>Caborca Suite para registro, QR y control de visitantes.</p>
             </div>
           </div>
 
@@ -1672,7 +1672,7 @@ async function crearCuentaUsuario(){
     const cred = await createUserWithEmailAndPassword(auth2, email, pass);
     const uid = cred.user.uid;
 
-    // ðŸ”´ IMPORTANTE: queda pendiente de aprobación
+    // 🔴 IMPORTANTE: queda pendiente de aprobaci�n
    
     const { db2 } = window.__FB__;
 
@@ -1683,8 +1683,8 @@ async function crearCuentaUsuario(){
       email,
       pinAutorizacion: pin,
       rol: "anfitrion",     // default
-      activo: false,        // ðŸ”´ BLOQUEADO hasta aprobación
-      aprobado: false,      // ðŸ”´ NUEVO CAMPO
+      activo: false,        // 🔴 BLOQUEADO hasta aprobaci�n
+      aprobado: false,      // 🔴 NUEVO CAMPO
       createdTs: Date.now()
     });
 
@@ -1700,7 +1700,7 @@ async function crearCuentaUsuario(){
 }
 
  function renderDashboard(){
-  // âœ… Fecha de vista (Dashboard)
+  // ✅ Fecha de vista (Dashboard)
   const fechaLabel = new Date().toLocaleDateString('es-MX');
 
   // Base filtrada por rol (anfitrión solo ve las suyas)
@@ -1728,7 +1728,7 @@ async function crearCuentaUsuario(){
       (v.status === Status.FINALIZADO || v.status === Status.RECHAZADO || !v.qrActivo)
     );
 
-  // âœ… TOTAL visible en dashboard
+  // ✅ TOTAL visible en dashboard
   const totalHoy = base.length;
 
   // Botones por rol
@@ -1737,7 +1737,7 @@ async function crearCuentaUsuario(){
     : ``;
 
   const btnAlta = (userRole === ROLES.ADMIN)
-    ? `<button class="secondary" id="btnAlta">âž• Alta de usuario</button>`
+    ? `<button class="secondary" id="btnAlta">➕ Alta de usuario</button>`
     : ``;
 
   const btnScan = (userRole === ROLES.ANFITRION)
@@ -1746,11 +1746,11 @@ async function crearCuentaUsuario(){
 
   const btnCita = (userRole === ROLES.ANFITRION)
     ? ``
-    : `<button class="secondary" id="btnCita">âž• Nueva cita</button>`;
+    : `<button class="secondary" id="btnCita">➕ Nueva cita</button>`;
 
   const btnActualizar = `<button class="secondary" data-act="actualizarDashboard">Actualizar</button>`;
 
-  // âœ… Render COMPLETO del dashboard
+  // ✅ Render COMPLETO del dashboard
   appEl.innerHTML = `
     <!-- Pills superiores: FECHA + TOTAL -->
     <div class="row" style="gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
@@ -1870,7 +1870,7 @@ async function crearCuentaUsuario(){
 
   `;
 
-  // âœ… Bindings post-render
+  // ✅ Bindings post-render
   if(userRole !== ROLES.ANFITRION){
     document.getElementById("btnScan")?.addEventListener("click", () => goTo(VIEWS.SCAN));
     document.getElementById("btnCita")?.addEventListener("click", () => goTo(VIEWS.CITA));
@@ -1971,7 +1971,7 @@ function renderKPI(){
         </div>
 
         <div class="card chart-card">
-          <div class="colTitle">Semáforo de espera (Llegadoâ†’Dentro)</div>
+          <div class="colTitle">Sem�foro de espera (Llegado→Dentro)</div>
           <div class="chart-wrap sm">
             <canvas id="chRag"></canvas>
           </div>
@@ -2129,7 +2129,7 @@ function renderHistorial(){
   // Marcar activo el sidebar (si existe)
   try { setActiveSb("historial"); } catch(e){}
 
-  // âœ… Acceso permitido SOLO a Admin y Anfitrión
+  // ✅ Acceso permitido SOLO a Admin y Anfitri�n
   if (userRole !== ROLES.ADMIN && userRole !== ROLES.ANFITRION) {
     toast(
       "Acceso denegado",
@@ -2250,7 +2250,7 @@ async function loadHistorial(){
     const finalizados  = list.filter(v => v.status === Status.FINALIZADO).length;
     const rechazados   = list.filter(v => v.status === Status.RECHAZADO).length;
 
-    // Espera promedio (Llegado â†’ Dentro)
+    // Espera promedio (Llegado → Dentro)
     const waits = list
       .map(v => calcTimes(v).esperaMin)
       .filter(x => x !== null);
@@ -2272,7 +2272,7 @@ async function loadHistorial(){
         <span class="pill"><span class="dot ok"></span>Dentro: <b style="color:#0f172a;margin-left:6px;">${dentro}</b></span>
         <span class="pill"><span class="dot muted"></span>Finalizados: <b style="color:#0f172a;margin-left:6px;">${finalizados}</b></span>
         <span class="pill"><span class="dot bad"></span>Rechazados: <b style="color:#0f172a;margin-left:6px;">${rechazados}</b></span>
-        <span class="pill" title="Llegadoâ†’Dentro"><span class="dot brand"></span>Espera prom: <b style="color:#0f172a;margin-left:6px;">${esperaProm} min</b></span>
+        <span class="pill" title="Llegado→Dentro"><span class="dot brand"></span>Espera prom: <b style="color:#0f172a;margin-left:6px;">${esperaProm} min</b></span>
         <span class="pill" title="Semáforo de espera"><span class="dot ok"></span>${verde}</span>
         <span class="pill" title="Semáforo de espera"><span class="dot warn"></span>${amarillo}</span>
         <span class="pill" title="Semáforo de espera"><span class="dot bad"></span>${rojo}</span>
@@ -2569,7 +2569,7 @@ function openDetalleCitaModal(v){
 
       try{ await signOut(auth2); }catch{}
 
-      msg.textContent = "âœ… Usuario creado, rol y PIN guardados.";
+      msg.textContent = "✅ Usuario creado, rol y PIN guardados.";
       toast("Alta usuario","Usuario creado correctamente.", "ok", 2200);
 
       $("#uNombre").value = "";
@@ -2858,7 +2858,7 @@ try {
 
     await setDoc(doc(db, "visitas", id), data);
 
-    // âœ… Si es visita individual, mostramos QR
+    // ✅ Si es visita individual, mostramos QR
     if (!groupId) {
       await openQrModal({
         id,
@@ -2916,7 +2916,7 @@ try {
         <div class="row" style="justify-content:space-between;">
           <div>
             <h2 style="margin:0 0 4px;">Visitantes</h2>
-            <div class="muted">Filtros â†’ Cargar â†’ Tabla</div>
+            <div class="muted">Filtros → Cargar → Tabla</div>
           </div>
           <div class="row">
             <button class="secondary" data-act="volverVisitantes">Volver</button>
@@ -3161,7 +3161,7 @@ async function actualizarUsuario(uid, data){
   try{
     await updateDoc(doc(db, "users", uid), data);
     toast("Usuario actualizado", "Cambios guardados correctamente.", "ok", 2200);
-    loadUsuarios(); // ðŸ” refresca la tabla
+    loadUsuarios(); // 🔁 refresca la tabla
   }catch(e){
     console.error(e);
     toast("Error", "No se pudo actualizar el usuario.", "bad", 4200);
@@ -3182,11 +3182,11 @@ async function loadUsuarios() {
   try {
     const snap = await getDocs(collection(db, "users"));
 
-    usuariosCache = []; // ðŸ”¥ limpiar cache
+    usuariosCache = []; // 🔥 limpiar cache
     const rows = [];
 
     snap.forEach(d => {
-      // âœ… IMPORTANTE: el UID REAL es d.id
+      // ✅ IMPORTANTE: el UID REAL es d.id
       const u = {
         uid: d.id,
         ...d.data()
@@ -3745,13 +3745,13 @@ function startListenerHoy(){
 
   const { db, collection, query, where, orderBy, limit, onSnapshot } = window.__FB__;
 
-  // âœ… Límites del día de HOY
+  // ✅ L�mites del d�a de HOY
   const hoyInicio = new Date();
   hoyInicio.setHours(0, 0, 0, 0);
 
   const hoyFin = new Date(hoyInicio.getTime() + 24 * 60 * 60 * 1000);
 
-  // âœ… QUERY POR FECHA PROGRAMADA (NO POR FECHA DE CREACIÃ“N)
+  // ✅ QUERY POR FECHA PROGRAMADA (NO POR FECHA DE CREACIÓN)
   const q = query(
     collection(db, "visitas"),
     where("programadaTs", ">=", hoyInicio.getTime()),
@@ -3769,7 +3769,7 @@ function startListenerHoy(){
         arr.push({ id: d.id, ...d.data() });
       });
 
-      // âœ… Solo tipo visitante
+      // ✅ Solo tipo visitante
       visitasHoy = arr.filter(v => v.tipo === "visitante");
       notifyRealtimeChanges(visitasHoy);
 
@@ -3827,28 +3827,28 @@ function stopListenerHoy(){
     userProfile = null;
   }
 
-  // ðŸ”´ SI NO EXISTE PERFIL
+  // 🔴 SI NO EXISTE PERFIL
   if (!userProfile) {
     toast("Pendiente", "Tu cuenta aún no está configurada.", "warn", 4000);
     await signOut(auth);
     return;
   }
 
-  // ðŸ”´ SI NO ESTÁ APROBADO
+  // 🔴 SI NO EST� APROBADO
   if (userProfile.aprobado === false) {
     toast("Pendiente", "Tu cuenta está en revisión.", "warn", 4000);
     await signOut(auth);
     return;
   }
 
-  // ðŸ”´ SI ESTÁ BLOQUEADO
+  // 🔴 SI EST� BLOQUEADO
   if (userProfile.activo === false) {
     toast("Bloqueado", "Tu cuenta está desactivada.", "bad", 4000);
     await signOut(auth);
     return;
   }
 
-  // âœ… TODO BIEN â†’ ENTRAR
+  // ✅ TODO BIEN → ENTRAR
   setAuthShell(false);
   userRole = userProfile.rol;
 
@@ -3867,8 +3867,8 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("./service-worker.js")
-      .then(() => console.log("âœ… Service Worker registrado"))
-      .catch(err => console.error("âŒ SW error", err));
+      .then(() => console.log("✅ Service Worker registrado"))
+      .catch(err => console.error("❌ SW error", err));
   });
 }
 </script>

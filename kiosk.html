@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
@@ -147,7 +147,7 @@
     }
   </style>
 
-  <!-- Firebase (solo Firestore, pÃºblico) -->
+  <!-- Firebase (solo Firestore, público) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, doc, setDoc, serverTimestamp }
@@ -174,9 +174,9 @@
 <body>
   <div class="container">
     <div class="kiosk-brand">
-      <img class="kiosk-logo" src="icons/icon-192.png" alt="MereSoft Access Control">
-      <h1>MereSoft Access Control</h1>
-      <p class="muted">Registro de visitantes - MereSoft Suite</p>
+      <img class="kiosk-logo" src="icons/icon-192.png" alt="Caborca Access Control">
+      <h1>Caborca Access Control</h1>
+      <p class="muted">Registro de visitantes - Caborca Suite</p>
     </div>
 
     <!-- FORM -->
@@ -419,12 +419,12 @@
       const inicial = String(data.nombreVisitante || "V").trim().charAt(0).toUpperCase() || "V";
       return `
         <div class="visitor-pass-wrap"><div class="visitor-pass" id="visitorPass">
-          <div class="visitor-pass-hero"><div><div class="visitor-pass-brand"><img src="icons/icon-192.png" alt="MereSoft Access Control" data-html2canvas-ignore="true"><div><strong>MereSoft</strong><span>Access Control</span></div></div><div class="visitor-pass-title"><h2>Cita visitante</h2></div></div><div class="visitor-pass-number"><small>Folio</small><b>${escapeHtml(data.id)}</b><i></i></div></div>
+          <div class="visitor-pass-hero"><div><div class="visitor-pass-brand"><img src="icons/icon-192.png" alt="Caborca Access Control" data-html2canvas-ignore="true"><div><strong>Caborca</strong><span>Access Control</span></div></div><div class="visitor-pass-title"><h2>Cita visitante</h2></div></div><div class="visitor-pass-number"><small>Folio</small><b>${escapeHtml(data.id)}</b><i></i></div></div>
           <div class="visitor-pass-body"><div class="visitor-pass-person"><div class="visitor-pass-avatar">${escapeHtml(inicial)}</div><div><div class="visitor-pass-label">Visitante</div><div class="visitor-pass-name">${escapeHtml(data.nombreVisitante)}</div><div class="visitor-pass-sub">${escapeHtml(data.empresa)}</div></div></div>
             <div class="visitor-pass-facts"><div class="visitor-pass-fact"><div class="visitor-pass-icon">A</div><div><div class="visitor-pass-label">Visita a</div><b>${escapeHtml(data.personaVisita)}</b><span>${escapeHtml(data.motivoVisita)}</span></div></div><div class="visitor-pass-fact"><div class="visitor-pass-icon">H</div><div><div class="visitor-pass-label">Fecha y hora</div><b>${escapeHtml(data.fechaProgramada)}</b><span>${escapeHtml(data.horaProgramada)}</span></div></div></div>
             <div class="visitor-pass-qr-zone"><div class="visitor-pass-side"><div class="visitor-pass-icon">ID</div><i></i><div>Identificacion</div></div><div class="visitor-pass-qr-card"><div id="qr" class="visitor-pass-qr"></div><div class="visitor-pass-code">${escapeHtml(data.id)}<small>Codigo QR</small></div></div><div class="visitor-pass-side"><div class="visitor-pass-icon">15</div><i></i><div>Valido<br>15 min</div></div></div>
             <div class="visitor-pass-instructions"><div class="visitor-pass-icon">!</div><div><b>Indicaciones</b><p>Conserva este pase. Guardia podra escanearlo cuando tu entrada sea autorizada.</p></div></div></div>
-          <div class="visitor-pass-footer">MereSoft Suite - Visitantes</div>
+          <div class="visitor-pass-footer">Caborca Suite - Visitantes</div>
         </div></div>`;
     }
 
@@ -490,8 +490,8 @@
       window.addEventListener("load", () => {
         navigator.serviceWorker
           .register("./service-worker.js")
-          .then(() => console.log("âœ… Service Worker registrado"))
-          .catch(err => console.error("âŒ SW error", err));
+          .then(() => console.log("✅ Service Worker registrado"))
+          .catch(err => console.error("❌ SW error", err));
       });
     }
   </script>
